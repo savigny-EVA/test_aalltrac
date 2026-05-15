@@ -1,0 +1,36 @@
+ADMIN 
+- Rajouter les % des maps en plus des maps gagnées car en cas d'égalités pouvoir départager garce au % 
+
+- Lorsque l'on rentre les scores dans l'admin sur la page Poule A (en cas de plusieurs poules)
+tout se passe correctement mais des que l'on va sur l'onglet B C D ... etc a chaque fois que
+l'on rentre un score et valide cela nous ramenne à la page de la poule A
+(ça doit etre une toute petite erreure de code)
+
+INDEX 
+- Faire en sorte de différencier les équipes montantes et descendante/éliminées avec l'admin
+sur les phases de poules pour que les joueurs sachent si ils sont dans la merde ou pas
+
+- rajouter un systeme de comptage de points par rapport au nombre de pourcent de différences en cas d'égalités
+(de paire avec l'admin)
+
+- Faire en sorte que le bracket ai une forme d'arbre simple ou un double si jamais ya un loser bracket
+
+- rajouter une animation de monté pour les équipes gagnante et une animation simple sur les équipes éliminées ou
+tombante dans le loser bracket (faire en sorte que cette animation n'intervienne que sur le match joué et pas toutes
+les équipes gagnante ou perdante à chaque fois 
+
+
+
+INDEX :
+- retirer le qr code de la page index car il passe au dessus de la 4 eme poule lorsqu'il y a 4 poules ou plus
+
+
+
+Demain : 
+
+- App Gm pour recuperer les infos du p&b avec qr code sur l'admin
+- faire en sorte de jouer toutes les poules en simultanées dans le planning (matchs.html + captain)
+- auto refresh app admin pour le p&b en direct
+- auto refresh en cas de reset tournoi sur l'app matchs.html
+- pouvoir activer et desactvier les logo d'équipe dans l'app admin ( vers matchs )
+
