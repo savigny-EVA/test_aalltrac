@@ -1,0 +1,538 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>Savigny Cups — Capitaine</title>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-database-compat.js"></script>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;500;600;700&family=Inter:wght@300;400;500&display=swap');
+:root{--bg:#0a0a0f;--bg2:#111118;--bg3:#1a1a24;--border:#ffffff12;--border2:#ffffff22;--accent:#e8c04a;--accent2:#c4a03a;--text:#f0f0f8;--muted:#6060a0;--danger:#e84a4a;--success:#4ae888;--blue:#4a90e8;--yellow:#f5c842;}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
+body{background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;min-height:100vh;overflow-x:hidden;}
+
+/* LOGIN */
+#login-screen{min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:24px;background:radial-gradient(ellipse at 50% 0%,#1a1a3a 0%,var(--bg) 70%);}
+.login-logo{font-family:'Rajdhani',sans-serif;font-size:32px;font-weight:700;letter-spacing:5px;color:var(--accent);text-align:center;margin-bottom:4px;}
+.login-sub{font-size:11px;letter-spacing:3px;color:var(--muted);text-transform:uppercase;text-align:center;margin-bottom:48px;}
+.login-box{width:100%;max-width:380px;background:var(--bg2);border:1px solid var(--border2);border-radius:4px;padding:32px 28px;}
+.login-step{font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--accent);margin-bottom:20px;}
+label{display:block;font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin-bottom:8px;}
+select,input[type="password"],input[type="text"]{width:100%;background:var(--bg3);border:1px solid var(--border2);color:var(--text);padding:14px 16px;font-family:'Inter',sans-serif;font-size:15px;border-radius:4px;outline:none;margin-bottom:20px;-webkit-appearance:none;transition:border-color .2s;}
+select:focus,input:focus{border-color:var(--accent);}
+.btn{width:100%;padding:15px;background:var(--accent);color:#000;border:none;font-family:'Rajdhani',sans-serif;font-size:17px;font-weight:700;letter-spacing:2px;text-transform:uppercase;cursor:pointer;border-radius:4px;transition:background .2s;}
+.btn:hover,.btn:active{background:var(--accent2);}
+.btn:disabled{opacity:.4;cursor:not-allowed;}
+.btn.ghost{background:transparent;border:1px solid var(--border2);color:var(--muted);font-size:14px;margin-top:10px;}
+.error-msg{color:var(--danger);font-size:12px;margin:-12px 0 16px;display:none;}
+
+/* APP */
+#app{display:none;flex-direction:column;min-height:100vh;}
+.app-header{background:var(--bg2);border-bottom:1px solid var(--border);padding:14px 20px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100;}
+.app-logo{font-family:'Rajdhani',sans-serif;font-size:18px;font-weight:700;letter-spacing:3px;color:var(--accent);line-height:1;}
+.app-team{font-size:11px;color:var(--muted);letter-spacing:1px;margin-top:2px;}
+.logout-btn{background:none;border:1px solid var(--border);color:var(--muted);padding:6px 12px;font-size:11px;letter-spacing:1px;text-transform:uppercase;cursor:pointer;border-radius:4px;font-family:'Inter',sans-serif;}
+.page-content{flex:1;padding:20px 16px 90px;display:none;}
+.page-content.active{display:block;}
+.section-title{font-family:'Rajdhani',sans-serif;font-size:20px;font-weight:700;letter-spacing:2px;margin-bottom:20px;}
+
+/* NAV */
+.bottom-nav{position:fixed;bottom:0;left:0;right:0;background:var(--bg2);border-top:1px solid var(--border);display:flex;z-index:100;padding-bottom:env(safe-area-inset-bottom);}
+.nav-item{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:10px 0;cursor:pointer;color:var(--muted);font-size:9px;letter-spacing:1px;text-transform:uppercase;font-family:'Rajdhani',sans-serif;font-weight:600;gap:4px;position:relative;transition:color .2s;}
+.nav-item.active{color:var(--accent);}
+.nav-item svg{width:22px;height:22px;}
+.nav-badge{position:absolute;top:6px;right:calc(50% - 18px);background:var(--danger);color:#fff;font-size:9px;width:16px;height:16px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:600;}
+
+/* PLANNING */
+.match-card{background:var(--bg2);border:1px solid var(--border);border-radius:4px;padding:18px;margin-bottom:12px;position:relative;overflow:hidden;}
+.match-card::before{content:'';position:absolute;left:0;top:0;bottom:0;width:3px;background:var(--accent);}
+.match-card.done::before{background:var(--muted);}
+.match-card.ongoing::before{background:var(--success);}
+.match-time{font-family:'Rajdhani',sans-serif;font-size:13px;font-weight:600;letter-spacing:2px;color:var(--accent);margin-bottom:10px;}
+.match-card.done .match-time{color:var(--muted);}
+.match-teams{display:flex;align-items:center;gap:10px;margin-bottom:10px;}
+.match-team{flex:1;font-family:'Rajdhani',sans-serif;font-size:16px;font-weight:700;}
+.match-team.mine{color:var(--accent);}
+.match-vs{font-size:11px;color:var(--muted);font-weight:600;}
+.match-score{font-family:'Rajdhani',sans-serif;font-size:22px;font-weight:700;display:flex;align-items:center;gap:8px;margin-bottom:10px;}
+.score-sep{color:var(--muted);font-size:14px;}
+.match-meta{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px;}
+.match-tag{font-size:10px;letter-spacing:1px;text-transform:uppercase;padding:3px 8px;border-radius:2px;background:var(--bg3);color:var(--muted);}
+.match-tag.pool{color:var(--accent);background:#e8c04a15;}
+.match-tag.live{color:var(--success);background:#4ae88815;animation:pulse 1.5s infinite;}
+.pb-btn{width:100%;padding:11px;background:var(--bg3);border:1px solid var(--accent);color:var(--accent);font-family:'Rajdhani',sans-serif;font-size:14px;font-weight:700;letter-spacing:2px;text-transform:uppercase;cursor:pointer;border-radius:4px;transition:all .2s;}
+.pb-btn:hover,.pb-btn:active{background:#e8c04a15;}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.6}}
+.empty-state{text-align:center;padding:60px 20px;color:var(--muted);}
+.empty-state .big{font-size:40px;margin-bottom:16px;}
+.empty-state p{font-size:13px;line-height:1.6;}
+
+/* CHAT LIST */
+.chat-contact{display:flex;align-items:center;gap:14px;padding:14px 16px;background:var(--bg2);border:1px solid var(--border);border-radius:4px;cursor:pointer;margin-bottom:8px;transition:border-color .2s;}
+.chat-contact:active{border-color:var(--border2);}
+.contact-avatar{width:40px;height:40px;border-radius:50%;background:var(--bg3);border:1px solid var(--border2);display:flex;align-items:center;justify-content:center;font-family:'Rajdhani',sans-serif;font-size:16px;font-weight:700;color:var(--accent);flex-shrink:0;}
+.contact-avatar.admin{color:var(--blue);}
+.contact-info{flex:1;min-width:0;}
+.contact-name{font-family:'Rajdhani',sans-serif;font-size:15px;font-weight:700;letter-spacing:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.contact-preview{font-size:12px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-top:2px;}
+.contact-unread{background:var(--danger);color:#fff;font-size:10px;font-weight:700;width:18px;height:18px;border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+
+/* CHAT VIEW */
+#chat-view{display:none;flex-direction:column;position:fixed;inset:0;background:var(--bg);z-index:200;}
+#chat-view.open{display:flex;}
+.chat-header{background:var(--bg2);border-bottom:1px solid var(--border);padding:14px 16px;display:flex;align-items:center;gap:12px;}
+.chat-back{background:none;border:none;color:var(--accent);font-size:20px;cursor:pointer;padding:4px 8px;}
+.chat-title{font-family:'Rajdhani',sans-serif;font-size:18px;font-weight:700;letter-spacing:1px;flex:1;}
+.chat-messages{flex:1;overflow-y:auto;padding:16px;display:flex;flex-direction:column;gap:10px;}
+.msg{max-width:80%;padding:10px 14px;border-radius:12px;font-size:14px;line-height:1.5;word-break:break-word;}
+.msg.mine{align-self:flex-end;background:var(--accent);color:#000;border-bottom-right-radius:4px;}
+.msg.theirs{align-self:flex-start;background:var(--bg2);border:1px solid var(--border2);color:var(--text);border-bottom-left-radius:4px;}
+.msg-time{font-size:10px;margin-top:4px;opacity:.6;}
+.chat-input-bar{background:var(--bg2);border-top:1px solid var(--border);padding:12px 16px;padding-bottom:calc(12px + env(safe-area-inset-bottom));display:flex;gap:10px;align-items:flex-end;}
+.chat-input{flex:1;background:var(--bg3);border:1px solid var(--border2);color:var(--text);padding:12px 14px;font-family:'Inter',sans-serif;font-size:14px;border-radius:20px;outline:none;resize:none;max-height:100px;}
+.send-btn{width:44px;height:44px;background:var(--accent);border:none;border-radius:50%;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.send-btn svg{width:18px;height:18px;}
+
+/* PROFIL */
+.profil-card{background:var(--bg2);border:1px solid var(--border);border-radius:4px;padding:24px;margin-bottom:16px;}
+.profil-avatar{width:64px;height:64px;border-radius:50%;background:var(--bg3);border:2px solid var(--accent);display:flex;align-items:center;justify-content:center;font-family:'Rajdhani',sans-serif;font-size:28px;font-weight:700;color:var(--accent);margin-bottom:16px;}
+.profil-name{font-family:'Rajdhani',sans-serif;font-size:26px;font-weight:700;letter-spacing:2px;margin-bottom:4px;}
+.profil-role{font-size:11px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin-bottom:20px;}
+.profil-stats{display:flex;gap:12px;}
+.pstat{flex:1;background:var(--bg3);border:1px solid var(--border);border-radius:4px;padding:12px;text-align:center;}
+.pstat-val{font-family:'Rajdhani',sans-serif;font-size:24px;font-weight:700;color:var(--accent);}
+.pstat-label{font-size:10px;letter-spacing:1px;text-transform:uppercase;color:var(--muted);margin-top:2px;}
+
+/* PB SCREEN */
+#pb-screen{display:none;position:fixed;inset:0;background:var(--bg);z-index:150;flex-direction:column;overflow-y:auto;}
+#pb-screen.open{display:flex;}
+.pb-topbar{background:var(--bg2);border-bottom:1px solid var(--border);padding:12px 16px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:10;}
+.pb-topbar-title{font-family:'Rajdhani',sans-serif;font-size:16px;font-weight:700;letter-spacing:2px;color:var(--accent);}
+.pb-topbar-match{font-size:11px;color:var(--muted);margin-top:1px;}
+.pb-back{background:none;border:1px solid var(--border);color:var(--muted);padding:6px 12px;font-size:11px;cursor:pointer;border-radius:4px;font-family:'Inter',sans-serif;}
+
+/* WAITING */
+#pb-waiting{padding:40px 16px;text-align:center;}
+.waiting-title{font-family:'Rajdhani',sans-serif;font-size:22px;font-weight:700;letter-spacing:2px;margin-bottom:8px;}
+.waiting-sub{font-size:13px;color:var(--muted);margin-bottom:32px;line-height:1.6;}
+.waiting-teams{display:flex;align-items:center;justify-content:center;gap:12px;margin-bottom:32px;flex-wrap:wrap;}
+.w-team-box{background:var(--bg2);border:1px solid var(--border2);border-radius:4px;padding:14px 20px;font-family:'Rajdhani',sans-serif;font-size:16px;font-weight:700;}
+.w-team-box.me{border-color:var(--accent);color:var(--accent);}
+.w-vs{font-size:12px;color:var(--muted);}
+.ready-btn{padding:16px 40px;background:var(--success);color:#000;border:none;font-family:'Rajdhani',sans-serif;font-size:18px;font-weight:700;letter-spacing:2px;cursor:pointer;border-radius:4px;}
+.ready-btn:disabled{opacity:.5;cursor:not-allowed;background:var(--muted);color:#fff;}
+.ready-dots{display:flex;justify-content:center;gap:24px;margin-top:20px;}
+.rdot-row{display:flex;align-items:center;gap:8px;font-size:12px;color:var(--muted);}
+.rdot{width:8px;height:8px;border-radius:50%;background:var(--border2);transition:background .3s;}
+.rdot.on{background:var(--success);}
+
+/* PB ACTIVE */
+#pb-active{display:none;flex-direction:column;}
+.teams-bar{display:flex;background:var(--bg2);border-bottom:1px solid var(--border);}
+.tbc{flex:1;padding:12px 16px;}
+.tbc.right{text-align:right;}
+.tbc-name{font-family:'Rajdhani',sans-serif;font-size:14px;font-weight:700;letter-spacing:1px;}
+.tbc-name.mine{color:var(--accent);}
+.tbc-side{font-size:10px;letter-spacing:1px;text-transform:uppercase;color:var(--muted);margin-top:2px;}
+.tbc-side.yellow{color:var(--yellow);}
+.tbc-side.blue{color:var(--blue);}
+.tbc-mid{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:8px;border-left:1px solid var(--border);border-right:1px solid var(--border);}
+.bo-badge{font-family:'Rajdhani',sans-serif;font-size:12px;font-weight:700;color:var(--muted);}
+.action-bar{padding:12px 16px;background:var(--bg3);border-bottom:1px solid var(--border);display:flex;align-items:center;gap:12px;}
+.act-info{flex:1;}
+.act-type{font-family:'Rajdhani',sans-serif;font-size:20px;font-weight:700;letter-spacing:1px;}
+.act-type.ban{color:var(--danger);}
+.act-type.pick{color:var(--success);}
+.act-type.side{color:var(--blue);}
+.act-type.choix{color:var(--accent);}
+.act-type.decider{color:var(--muted);}
+.act-team{font-size:11px;color:var(--muted);margin-top:2px;}
+.timer-ring{width:48px;height:48px;border-radius:50%;background:var(--bg2);border:2px solid var(--border2);display:flex;align-items:center;justify-content:center;font-family:'Rajdhani',sans-serif;font-size:20px;font-weight:700;flex-shrink:0;transition:border-color .3s,color .3s;}
+.timer-ring.ok{border-color:var(--success);color:var(--success);}
+.timer-ring.warn{border-color:var(--accent);color:var(--accent);}
+.timer-ring.urgent{border-color:var(--danger);color:var(--danger);}
+.seq-row{display:flex;gap:5px;padding:10px 16px;overflow-x:auto;border-bottom:1px solid var(--border);scrollbar-width:none;}
+.seq-row::-webkit-scrollbar{display:none;}
+.seq-pip{flex-shrink:0;width:30px;height:30px;border-radius:4px;display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:700;text-transform:uppercase;font-family:'Rajdhani',sans-serif;border:1px solid var(--border);color:var(--muted);background:var(--bg3);transition:all .2s;}
+.seq-pip.ban{border-color:#e84a4a40;color:var(--danger);background:#e84a4a10;}
+.seq-pip.pick{border-color:#4ae88840;color:var(--success);background:#4ae88810;}
+.seq-pip.side{border-color:#4a90e840;color:var(--blue);background:#4a90e810;}
+.seq-pip.choix{border-color:#e8c04a40;color:var(--accent);background:#e8c04a10;}
+.seq-pip.active{transform:scale(1.2);box-shadow:0 0 0 2px currentColor;}
+.seq-pip.done{opacity:.35;}
+.maps-area{padding:14px 16px;}
+.maps-label{font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin-bottom:10px;}
+.maps-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;}
+.map-tile{border-radius:6px;border:1px solid var(--border);background:var(--bg2);cursor:pointer;transition:all .2s;position:relative;aspect-ratio:16/10;display:flex;align-items:flex-end;overflow:hidden;}
+.map-tile.selectable{border-color:var(--border2);}
+.map-tile.selectable:hover,.map-tile.selectable:active{border-color:var(--accent);transform:scale(.98);}
+.map-tile.banned{opacity:.4;cursor:not-allowed;border-color:var(--danger);}
+.map-tile.picked-a{border-color:var(--accent);background:#e8c04a10;}
+.map-tile.picked-b{border-color:var(--blue);background:#4a90e810;}
+.map-tile.decider-map{border-color:var(--success);background:#4ae88810;}
+.map-tile.locked{cursor:not-allowed;}
+.map-name{font-family:'Rajdhani',sans-serif;font-size:11px;font-weight:700;text-align:center;padding:6px 4px;width:100%;position:relative;z-index:2;background:linear-gradient(transparent,rgba(0,0,0,.75));line-height:1.2;}
+.map-ov{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:3;gap:2px;}
+.mov-icon{font-size:22px;line-height:1;}
+.mov-label{font-size:8px;letter-spacing:1px;text-transform:uppercase;font-family:'Rajdhani',sans-serif;font-weight:700;}
+.map-tile.banned .mov-label{color:var(--danger);}
+.map-tile.picked-a .mov-label{color:var(--accent);}
+.map-tile.picked-b .mov-label{color:var(--blue);}
+.map-tile.decider-map .mov-label{color:var(--success);}
+.picks-preview{margin:0 16px 16px;background:var(--bg2);border:1px solid var(--border);border-radius:4px;padding:14px;}
+.picks-title{font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin-bottom:10px;}
+.pick-row{display:flex;align-items:center;justify-content:space-between;padding:8px 10px;border-radius:4px;background:var(--bg3);margin-bottom:6px;border-left:3px solid var(--border);}
+.pick-row.pa{border-left-color:var(--accent);}
+.pick-row.pb{border-left-color:var(--blue);}
+.pick-row.pd{border-left-color:var(--success);}
+.pick-name{font-family:'Rajdhani',sans-serif;font-size:15px;font-weight:700;}
+.pick-tag{font-size:10px;color:var(--muted);}
+
+/* MODALS */
+.modal-ov{display:none;position:fixed;inset:0;background:rgba(0,0,0,.88);z-index:400;align-items:center;justify-content:center;padding:24px;}
+.modal-ov.open{display:flex;}
+.modal-box{background:var(--bg2);border:1px solid var(--border2);border-radius:8px;padding:28px 24px;width:100%;max-width:340px;text-align:center;}
+.modal-title{font-family:'Rajdhani',sans-serif;font-size:22px;font-weight:700;letter-spacing:2px;margin-bottom:8px;}
+.modal-sub{font-size:13px;color:var(--muted);margin-bottom:24px;line-height:1.5;}
+.modal-choices{display:flex;gap:10px;}
+.modal-choices.col{flex-direction:column;}
+.c-btn{flex:1;padding:18px 12px;border:2px solid var(--border2);border-radius:6px;background:var(--bg3);cursor:pointer;transition:all .2s;font-family:'Rajdhani',sans-serif;font-size:18px;font-weight:700;letter-spacing:1px;color:var(--text);text-align:left;}
+.c-btn small{display:block;font-size:11px;color:var(--muted);margin-top:4px;font-family:'Inter',sans-serif;font-weight:400;letter-spacing:0;}
+.c-btn:hover{border-color:var(--accent);}
+.c-btn.yellow{color:var(--yellow);}
+.c-btn.yellow:hover{border-color:var(--yellow);background:#f5c84210;}
+.c-btn.blue-c{color:var(--blue);}
+.c-btn.blue-c:hover{border-color:var(--blue);background:#4a90e810;}
+
+/* TIRAGE */
+#tirage-ov{display:none;position:fixed;inset:0;background:var(--bg);z-index:500;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:24px;}
+#tirage-ov.open{display:flex;}
+.tirage-label{font-family:'Rajdhani',sans-serif;font-size:14px;letter-spacing:4px;color:var(--muted);text-transform:uppercase;margin-bottom:24px;}
+.tirage-name{font-family:'Rajdhani',sans-serif;font-size:38px;font-weight:700;letter-spacing:3px;color:var(--accent);min-height:52px;}
+.tirage-result{font-size:13px;color:var(--muted);margin-top:12px;}
+@keyframes flick{0%{opacity:1}50%{opacity:.2}100%{opacity:1}}
+.spinning{animation:flick .07s linear infinite;}
+
+/* DONE */
+#pb-done-ov{display:none;position:fixed;inset:0;background:rgba(0,0,0,.92);z-index:450;flex-direction:column;align-items:center;justify-content:center;padding:24px;text-align:center;}
+#pb-done-ov.open{display:flex;}
+.done-title{font-family:'Rajdhani',sans-serif;font-size:28px;font-weight:700;letter-spacing:3px;color:var(--success);margin-bottom:6px;}
+.done-sub{font-size:13px;color:var(--muted);margin-bottom:20px;}
+.done-sides{display:flex;gap:12px;justify-content:center;margin-bottom:20px;}
+.side-pill{padding:8px 16px;border-radius:4px;font-family:'Rajdhani',sans-serif;font-size:14px;font-weight:700;letter-spacing:1px;}
+.side-pill.y{background:#f5c84220;color:var(--yellow);}
+.side-pill.b{background:#4a90e820;color:var(--blue);}
+.done-maps{width:100%;max-width:340px;display:flex;flex-direction:column;gap:8px;margin-bottom:24px;}
+.done-map-row{display:flex;align-items:center;justify-content:space-between;padding:12px 16px;background:var(--bg2);border-radius:4px;border-left:3px solid var(--border2);}
+.done-map-row.a{border-left-color:var(--accent);}
+.done-map-row.b{border-left-color:var(--blue);}
+.done-map-row.d{border-left-color:var(--success);}
+.done-map-name{font-family:'Rajdhani',sans-serif;font-size:16px;font-weight:700;}
+.done-map-info{font-size:11px;color:var(--muted);}
+
+/* TOAST */
+.toast{position:fixed;bottom:90px;left:50%;transform:translateX(-50%) translateY(20px);background:var(--bg2);border:1px solid var(--border2);color:var(--text);padding:12px 20px;font-size:13px;border-radius:20px;z-index:999;opacity:0;transition:all .3s;white-space:nowrap;pointer-events:none;}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
+.toast.success{border-color:var(--success);color:var(--success);}
+.toast.error{border-color:var(--danger);color:var(--danger);}
+.toast.info{border-color:var(--accent);color:var(--accent);}
+</style>
+</head>
+<body>
+
+<!-- LOGIN -->
+<div id="login-screen">
+  <div class="login-logo">SAVIGNY CUPS</div>
+  <div class="login-sub">Espace Capitaine</div>
+  <div class="login-box">
+    <div id="step1">
+      <div class="login-step">Étape 1 — Ton équipe</div>
+      <label>Sélectionne ton équipe</label>
+      <select id="team-select"><option value="">Chargement...</option></select>
+      <button class="btn" onclick="goStep2()">Continuer</button>
+    </div>
+    <div id="step2" style="display:none;">
+      <div class="login-step" id="step2-label">Étape 2 — Connexion</div>
+      <label id="pwd-label">Ton mot de passe</label>
+      <input type="password" id="pwd-input" placeholder="••••••••" onkeydown="if(event.key==='Enter')doLogin()">
+      <div class="error-msg" id="login-err">Mot de passe incorrect</div>
+      <div id="confirm-wrap" style="display:none;">
+        <label>Confirme le mot de passe</label>
+        <input type="password" id="pwd-confirm" placeholder="••••••••">
+      </div>
+      <button class="btn" id="login-btn" onclick="doLogin()">Se connecter</button>
+      <button class="btn ghost" onclick="backStep1()">Retour</button>
+    </div>
+  </div>
+</div>
+
+<!-- APP -->
+<div id="app">
+  <div class="app-header">
+    <div>
+      <div class="app-logo">SAVIGNY CUPS</div>
+      <div class="app-team" id="header-team">—</div>
+    </div>
+    <button class="logout-btn" onclick="doLogout()">Quitter</button>
+  </div>
+
+  <div class="page-content active" id="page-planning">
+    <div class="section-title">Mon planning</div>
+    <div id="matches-list"></div>
+  </div>
+
+  <div class="page-content" id="page-chat">
+    <div class="section-title">Messages</div>
+    <div id="chat-contacts"></div>
+  </div>
+
+  <div class="page-content" id="page-profil">
+    <div class="section-title">Mon profil</div>
+    <div class="profil-card">
+      <div class="profil-avatar" id="profil-av">?</div>
+      <div class="profil-name" id="profil-name">—</div>
+      <div class="profil-role">Capitaine</div>
+      <div class="profil-stats">
+        <div class="pstat"><div class="pstat-val" id="st-total">0</div><div class="pstat-label">Matchs</div></div>
+        <div class="pstat"><div class="pstat-val" id="st-wins">0</div><div class="pstat-label">Victoires</div></div>
+        <div class="pstat"><div class="pstat-val" id="st-losses">0</div><div class="pstat-label">Défaites</div></div>
+      </div>
+    </div>
+    <button class="btn ghost" onclick="doLogout()" style="margin-top:8px;">Se déconnecter</button>
+  </div>
+
+  <nav class="bottom-nav">
+    <div class="nav-item active" id="nav-planning" onclick="switchPage('planning')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+      Planning
+    </div>
+    <div class="nav-item" id="nav-chat" onclick="switchPage('chat')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>
+      Chat
+      <div class="nav-badge" id="chat-badge" style="display:none;">0</div>
+    </div>
+    <div class="nav-item" id="nav-profil" onclick="switchPage('profil')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+      Profil
+    </div>
+  </nav>
+</div>
+
+<!-- CHAT VIEW -->
+<div id="chat-view">
+  <div class="chat-header">
+    <button class="chat-back" onclick="closeChat()">←</button>
+    <div class="chat-title" id="chat-view-title">—</div>
+  </div>
+  <div class="chat-messages" id="chat-messages"></div>
+  <div class="chat-input-bar">
+    <textarea class="chat-input" id="chat-input" placeholder="Message..." rows="1" onkeydown="handleChatKey(event)" oninput="autoResize(this)"></textarea>
+    <button class="send-btn" onclick="sendMsg()">
+      <svg viewBox="0 0 24 24" fill="none" stroke="#000" stroke-width="2.5" stroke-linecap="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+    </button>
+  </div>
+</div>
+
+<!-- PICK & BAN SCREEN -->
+<div id="pb-screen">
+  <div class="pb-topbar">
+    <div>
+      <div class="pb-topbar-title">PICK & BAN</div>
+      <div class="pb-topbar-match" id="pb-match-label">—</div>
+    </div>
+    <button class="pb-back" onclick="closePB()">← Retour</button>
+  </div>
+
+  <div id="pb-waiting">
+    <div class="waiting-title">Salle d'attente</div>
+    <div class="waiting-sub">Les deux capitaines doivent confirmer<br>être prêts pour lancer le Pick & Ban</div>
+    <div class="waiting-teams">
+      <div class="w-team-box me" id="w-my-team">—</div>
+      <div class="w-vs">VS</div>
+      <div class="w-team-box" id="w-opp-team">—</div>
+    </div>
+    <button class="ready-btn" id="ready-btn" onclick="setReady()">Je suis prêt</button>
+    <div class="ready-dots">
+      <div class="rdot-row"><div class="rdot" id="rdot-me"></div><span id="rlabel-me">—</span></div>
+      <div class="rdot-row"><div class="rdot" id="rdot-opp"></div><span id="rlabel-opp">—</span></div>
+    </div>
+  </div>
+
+  <div id="pb-active">
+    <div class="teams-bar">
+      <div class="tbc">
+        <div class="tbc-name mine" id="bar-ta">—</div>
+        <div class="tbc-side" id="bar-sa">Side à définir</div>
+      </div>
+      <div class="tbc-mid"><div class="bo-badge">BO3</div></div>
+      <div class="tbc right">
+        <div class="tbc-name" id="bar-tb">—</div>
+        <div class="tbc-side" id="bar-sb">Side à définir</div>
+      </div>
+    </div>
+    <div class="action-bar">
+      <div class="act-info">
+        <div class="act-type" id="act-type">—</div>
+        <div class="act-team" id="act-team">—</div>
+      </div>
+      <div class="timer-ring" id="timer-el">—</div>
+    </div>
+    <div class="seq-row" id="seq-row"></div>
+    <div class="maps-area">
+      <div class="maps-label">Map pool</div>
+      <div class="maps-grid" id="maps-grid"></div>
+    </div>
+    <div class="picks-preview" id="picks-preview" style="display:none;">
+      <div class="picks-title">Maps sélectionnées</div>
+      <div id="picks-list"></div>
+    </div>
+  </div>
+</div>
+
+<!-- MODALS -->
+<div class="modal-ov" id="modal-first-choice">
+  <div class="modal-box">
+    <div class="modal-title">Ton avantage</div>
+    <div class="modal-sub">Tu as gagné le tirage. Que veux-tu choisir ?</div>
+    <div class="modal-choices col">
+      <button class="c-btn" onclick="chooseFirst('maps')">Choisir les maps<small>Tu gères les bans et picks en premier</small></button>
+      <button class="c-btn" onclick="chooseFirst('side')">Choisir le side<small>Tu choisis Jaune ou Bleu pour tout le match</small></button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-ov" id="modal-side">
+  <div class="modal-box">
+    <div class="modal-title">Choix du side</div>
+    <div class="modal-sub" id="side-modal-sub">Choisis ton side pour tout le match</div>
+    <div class="modal-choices">
+      <button class="c-btn yellow" onclick="chooseSide('yellow')">JAUNE</button>
+      <button class="c-btn blue-c" onclick="chooseSide('blue')">BLEU</button>
+    </div>
+  </div>
+</div>
+
+<!-- TIRAGE -->
+<div id="tirage-ov">
+  <div class="tirage-label">Tirage au sort</div>
+  <div class="tirage-name" id="tirage-name">...</div>
+  <div class="tirage-result" id="tirage-result">Détermination en cours...</div>
+</div>
+
+<!-- PB DONE -->
+<div id="pb-done-ov">
+  <div class="done-title">Pick & Ban terminé</div>
+  <div class="done-sub">Maps confirmées pour ce match</div>
+  <div class="done-sides">
+    <div class="side-pill y" id="done-side-a">— : JAUNE</div>
+    <div class="side-pill b" id="done-side-b">— : BLEU</div>
+  </div>
+  <div class="done-maps" id="done-maps-list"></div>
+  <button class="btn" style="max-width:340px;width:100%;" onclick="closeDoneOv()">Fermer</button>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const firebaseConfig={apiKey:"AIzaSyAJ5VS2HQTguUaOS6RmFocVz3FY0kC7M74",authDomain:"savigny-major-cup.firebaseapp.com",databaseURL:"https://savigny-major-cup-default-rtdb.europe-west1.firebasedatabase.app",projectId:"savigny-major-cup",storageBucket:"savigny-major-cup.firebasestorage.app",messagingSenderId:"739304547260",appId:"1:739304547260:web:10b130b42d3f859b9ac1b9"};
+firebase.initializeApp(firebaseConfig);
+const db=firebase.database();
+
+let ME=null,myMatches=[],chatWith=null,chatRef=null,unread={};
+let pbMatch=null,pbRef=null,pbState=null,isMyTurn=false,timerInt=null,mapPool=[],tirageShown=false;
+
+const SEQ=[
+  {type:'choix',who:'starter',label:'Choix'},
+  {type:'side',who:'other',label:'Side'},
+  {type:'ban',who:'starter',label:'Ban'},
+  {type:'ban',who:'other',label:'Ban'},
+  {type:'pick',who:'starter',label:'Pick'},
+  {type:'pick',who:'other',label:'Pick'},
+  {type:'ban',who:'starter',label:'Ban'},
+  {type:'ban',who:'other',label:'Ban'},
+  {type:'decider',who:'auto',label:'Auto'},
+];
+
+async function sha256(s){const b=await crypto.subtle.digest('SHA-256',new TextEncoder().encode(s));return Array.from(new Uint8Array(b)).map(x=>x.toString(16).padStart(2,'0')).join('');}
+
+/* LOGIN */
+let teamCache=null;
+async function loadTeamsForLogin(){const s=await db.ref('teams').once('value');const ts=s.val()||{};const sel=document.getElementById('team-select');sel.innerHTML='<option value="">-- Sélectionne ton équipe --</option>';Object.keys(ts).sort().forEach(n=>sel.innerHTML+=`<option value="${n}">${n}</option>`);}
+loadTeamsForLogin();
+
+async function goStep2(){const name=document.getElementById('team-select').value;if(!name){showToast('Sélectionne ton équipe','error');return;}const s=await db.ref('teams/'+name).once('value');teamCache=s.val();if(!teamCache){showToast('Équipe introuvable','error');return;}document.getElementById('step1').style.display='none';document.getElementById('step2').style.display='block';if(!teamCache.passwordSet){document.getElementById('step2-label').textContent='Étape 2 — Crée ton mot de passe';document.getElementById('pwd-label').textContent='Choisis un mot de passe';document.getElementById('confirm-wrap').style.display='block';document.getElementById('login-btn').textContent='Créer mon compte';}}
+
+function backStep1(){document.getElementById('step2').style.display='none';document.getElementById('step1').style.display='block';document.getElementById('login-err').style.display='none';document.getElementById('pwd-input').value='';document.getElementById('pwd-confirm').value='';}
+
+async function doLogin(){const name=document.getElementById('team-select').value;const pwd=document.getElementById('pwd-input').value;if(!pwd)return;const btn=document.getElementById('login-btn');btn.disabled=true;btn.textContent='...';const hash=await sha256(pwd);if(!teamCache.passwordSet){const conf=document.getElementById('pwd-confirm').value;if(pwd!==conf){document.getElementById('login-err').textContent='Les mots de passe ne correspondent pas';document.getElementById('login-err').style.display='block';btn.disabled=false;btn.textContent='Créer mon compte';return;}await db.ref('teams/'+name).update({passwordSet:true,passwordHash:hash});loginOK(name);}else{if(hash!==teamCache.passwordHash){document.getElementById('login-err').style.display='block';btn.disabled=false;btn.textContent='Se connecter';return;}loginOK(name);}}
+
+function loginOK(name){ME=name;sessionStorage.setItem('sc_team',name);document.getElementById('login-screen').style.display='none';document.getElementById('app').style.display='flex';document.getElementById('header-team').textContent=name;document.getElementById('profil-name').textContent=name;document.getElementById('profil-av').textContent=name.charAt(0).toUpperCase();loadMapPoolCfg();loadMyMatches();loadChatContacts();}
+function doLogout(){ME=null;sessionStorage.removeItem('sc_team');location.reload();}
+
+/* MAP POOL */
+async function loadMapPoolCfg(){const s=await db.ref('config/mapPool').once('value');mapPool=s.val()||['Artefact','Atlantis','Ceres','Engine','Helios Station','Horizon','Lunar Outpost','Outlaw','Polaris','Silva','The Cliff'];}
+
+/* PLANNING */
+function loadMyMatches(){myMatches=[];const pools=['A','B','C','D'];let done=0;pools.forEach(pool=>{db.ref('matches/'+pool).on('value',snap=>{const data=snap.val();if(data)Object.values(data).forEach(m=>{if(m.tA===ME||m.tB===ME){myMatches=myMatches.filter(x=>!(x.pool===m.pool&&x.slot===m.slot));myMatches.push(m);}});done++;if(done>=pools.length)renderPlanning();});});db.ref('tournament').on('value',snap=>{const data=snap.val();if(!data)return;['wb','lb','finals','barrage'].forEach(phase=>{if(!data[phase])return;Object.values(data[phase]).forEach(m=>{if(!m||typeof m!=='object')return;if(m.tA===ME||m.tB===ME){myMatches=myMatches.filter(x=>x.l!==m.l);myMatches.push({...m,phase});}});});renderPlanning();});}
+
+function renderPlanning(){const list=document.getElementById('matches-list');if(!myMatches.length){list.innerHTML='<div class="empty-state"><div class="big">📋</div><p>Aucun match trouvé.<br>Le planning sera disponible une fois le tournoi lancé.</p></div>';return;}myMatches.sort((a,b)=>(a.time||'').localeCompare(b.time||''));let wins=0,losses=0;myMatches.forEach(m=>{if(m.done){const ia=m.tA===ME;if((ia&&m.sA>m.sB)||(!ia&&m.sB>m.sA))wins++;else losses++;}});document.getElementById('st-total').textContent=myMatches.length;document.getElementById('st-wins').textContent=wins;document.getElementById('st-losses').textContent=losses;list.innerHTML=myMatches.map(m=>{const isA=m.tA===ME;const opp=isA?m.tB:m.tA;const myS=isA?(m.sA??'—'):(m.sB??'—');const oppS=isA?(m.sB??'—'):(m.sA??'—');const phase=m.pool?`Poule ${m.pool}`:(m.phase||'').toUpperCase();const live=!m.done&&m.started;return `<div class="match-card ${m.done?'done':''} ${live?'ongoing':''}"><div class="match-time">${m.time||'Horaire à définir'}</div><div class="match-teams"><div class="match-team mine">${ME}</div><div class="match-vs">VS</div><div class="match-team">${opp||'—'}</div></div>${m.done?`<div class="match-score"><span>${myS}</span><span class="score-sep">—</span><span>${oppS}</span></div>`:''}<div class="match-meta">${phase?`<span class="match-tag pool">${phase}</span>`:''}${m.done?'<span class="match-tag">Terminé</span>':''}${live?'<span class="match-tag live">En cours</span>':''}${!m.done&&!live?'<span class="match-tag">À venir</span>':''}</div>${!m.done&&opp?`<button class="pb-btn" onclick='openPB(${JSON.stringify(m)})'>Pick &amp; Ban</button>`:''}</div>`;}).join('');}
+
+/* CHAT */
+function getCK(a,b){return[a,b].sort().join('__');}
+function loadChatContacts(){db.ref('teams').on('value',snap=>{const ts=snap.val()||{};const cont=document.getElementById('chat-contacts');cont.innerHTML='';const contacts=['ADMIN',...Object.keys(ts).filter(t=>t!==ME).sort()];contacts.forEach(c=>{const isAdmin=c==='ADMIN';const div=document.createElement('div');div.className='chat-contact';div.innerHTML=`<div class="contact-avatar ${isAdmin?'admin':''}">${isAdmin?'A':c.charAt(0).toUpperCase()}</div><div class="contact-info"><div class="contact-name">${isAdmin?'Admin EVA':c}</div><div class="contact-preview" id="cprev-${c}">Aucun message</div></div><div class="contact-unread" id="cunread-${c}" style="display:none;">0</div>`;div.onclick=()=>openChat(c);cont.appendChild(div);db.ref('chats/'+getCK(ME,c)).limitToLast(1).on('value',s=>{const d=s.val();if(d){const last=Object.values(d)[0];document.getElementById('cprev-'+c).textContent=last.text;if(last.from!==ME&&!last.read){unread[c]=(unread[c]||0)+1;updUnread(c);}}});});});}
+function updUnread(c){const n=unread[c]||0;const el=document.getElementById('cunread-'+c);if(el){el.style.display=n>0?'flex':'none';el.textContent=n;}const tot=Object.values(unread).reduce((a,b)=>a+b,0);const badge=document.getElementById('chat-badge');badge.style.display=tot>0?'flex':'none';badge.textContent=tot;}
+function openChat(c){chatWith=c;document.getElementById('chat-view-title').textContent=c==='ADMIN'?'Admin EVA':c;document.getElementById('chat-view').classList.add('open');document.getElementById('chat-messages').innerHTML='';unread[c]=0;updUnread(c);const key=getCK(ME,c);if(chatRef)db.ref(chatRef).off();chatRef='chats/'+key;db.ref(chatRef).on('value',s=>{const data=s.val()||{};const msgs=document.getElementById('chat-messages');msgs.innerHTML='';Object.values(data).sort((a,b)=>a.ts-b.ts).forEach(m=>{const mine=m.from===ME;const d=new Date(m.ts);const t=d.getHours().toString().padStart(2,'0')+':'+d.getMinutes().toString().padStart(2,'0');msgs.innerHTML+=`<div class="msg ${mine?'mine':'theirs'}">${m.text}<div class="msg-time">${t}</div></div>`;});msgs.scrollTop=msgs.scrollHeight;});}
+function closeChat(){document.getElementById('chat-view').classList.remove('open');if(chatRef){db.ref(chatRef).off();chatRef=null;}chatWith=null;}
+async function sendMsg(){const inp=document.getElementById('chat-input');const text=inp.value.trim();if(!text||!chatWith)return;await db.ref('chats/'+getCK(ME,chatWith)).push({from:ME,to:chatWith,text,ts:Date.now(),read:false});inp.value='';inp.style.height='auto';}
+function handleChatKey(e){if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();sendMsg();}}
+function autoResize(el){el.style.height='auto';el.style.height=Math.min(el.scrollHeight,100)+'px';}
+
+/* PICK & BAN */
+function openPB(match){pbMatch=match;tirageShown=false;const opp=match.tA===ME?match.tB:match.tA;document.getElementById('pb-match-label').textContent=ME+' vs '+opp;document.getElementById('w-my-team').textContent=ME;document.getElementById('w-opp-team').textContent=opp||'—';document.getElementById('rlabel-me').textContent=ME;document.getElementById('rlabel-opp').textContent=opp||'—';document.getElementById('pb-waiting').style.display='block';document.getElementById('pb-active').style.display='none';document.getElementById('ready-btn').disabled=false;document.getElementById('ready-btn').textContent='Je suis prêt';document.getElementById('pb-screen').classList.add('open');const mid=match.l||(match.pool+'_'+match.slot);pbRef=db.ref('pickban/'+mid);pbRef.once('value',s=>{const ex=s.val();if(ex&&ex.status==='done'){showDoneOv(ex);return;}if(ex&&ex.status==='ongoing'){document.getElementById('pb-waiting').style.display='none';document.getElementById('pb-active').style.display='flex';document.getElementById('pb-active').style.flexDirection='column';listenPB();return;}listenWaiting(opp);});}
+
+function closePB(){stopTimer();if(pbRef)pbRef.off();document.getElementById('pb-screen').classList.remove('open');document.getElementById('pb-done-ov').classList.remove('open');pbMatch=null;pbState=null;tirageShown=false;}
+
+function listenWaiting(opp){pbRef.on('value',s=>{const d=s.val()||{};const myR=d['ready_'+ME]||false;const oppR=d['ready_'+(opp)]||false;document.getElementById('rdot-me').className='rdot'+(myR?' on':'');document.getElementById('rdot-opp').className='rdot'+(oppR?' on':'');document.getElementById('ready-btn').disabled=myR;document.getElementById('ready-btn').textContent=myR?'En attente...':'Je suis prêt';if(myR&&oppR&&d.status!=='ongoing'){startPB(opp);}else if(d.status==='ongoing'){pbRef.off();document.getElementById('pb-waiting').style.display='none';document.getElementById('pb-active').style.display='flex';document.getElementById('pb-active').style.flexDirection='column';listenPB();}});}
+
+async function setReady(){if(!pbMatch)return;const mid=pbMatch.l||(pbMatch.pool+'_'+pbMatch.slot);await db.ref('pickban/'+mid+'/ready_'+ME).set(true);document.getElementById('ready-btn').disabled=true;document.getElementById('ready-btn').textContent='En attente...';showToast('Tu es prêt !','success');}
+
+async function startPB(opp){const mid=pbMatch.l||(pbMatch.pool+'_'+pbMatch.slot);const s=await db.ref('pickban/'+mid).once('value');if(s.val()&&s.val().status==='ongoing')return;const tA=pbMatch.tA,tB=pbMatch.tB;const starter=Math.random()<.5?tA:tB;const cfgS=await db.ref('config/pickban').once('value');const cfg=cfgS.val()||{};await db.ref('pickban/'+mid).update({status:'ongoing',tA,tB,starter,other:starter===tA?tB:tA,currentStep:0,timer:cfg.timer||45,stepStartedAt:Date.now(),actions:{},sideA:null,sideB:null,firstChoice:null,mapPool:mapPool,['ready_'+tA]:true,['ready_'+tB]:true});}
+
+function listenPB(){pbRef.on('value',s=>{pbState=s.val();if(!pbState)return;if(pbState.status==='done'){stopTimer();showDoneOv(pbState);return;}if(!tirageShown){tirageShown=true;showTirage(pbState.starter,()=>renderPB(pbState));}else{renderPB(pbState);}});}
+
+function showTirage(winner,cb){const ov=document.getElementById('tirage-ov');const nm=document.getElementById('tirage-name');const res=document.getElementById('tirage-result');const teams=[pbMatch.tA,pbMatch.tB];ov.classList.add('open');nm.classList.add('spinning');let i=0;const iv=setInterval(()=>{nm.textContent=teams[i%2];i++;if(i>=22){clearInterval(iv);nm.classList.remove('spinning');nm.textContent=winner;res.textContent=winner+' choisit en premier';setTimeout(()=>{ov.classList.remove('open');if(cb)cb();},2200);}},90);}
+
+function renderPB(st){const{tA,tB,starter,other,currentStep,actions,sideA,sideB}=st;const pool=st.mapPool||mapPool;const step=SEQ[currentStep];const actualWho=step?(step.who==='starter'?starter:step.who==='other'?other:'auto'):'auto';isMyTurn=actualWho===ME;document.getElementById('bar-ta').textContent=tA;document.getElementById('bar-tb').textContent=tB;if(sideA){const sa=sideA==='yellow'?'JAUNE':'BLEU';const sb=sideB==='yellow'?'JAUNE':'BLEU';const saEl=document.getElementById('bar-sa');const sbEl=document.getElementById('bar-sb');saEl.textContent=sa;saEl.className='tbc-side '+sideA;sbEl.textContent=sb;sbEl.className='tbc-side '+sideB;}if(step){const at=document.getElementById('act-type');at.textContent=step.label.toUpperCase();at.className='act-type '+step.type;document.getElementById('act-team').textContent=isMyTurn?'Ton tour — '+step.label:'Tour de '+actualWho+' — '+step.label;}else{document.getElementById('act-type').textContent='Terminé';document.getElementById('act-team').textContent='';}renderSeq(currentStep);renderMaps(st,pool);renderPicks(st);startTimer(st);if(isMyTurn&&step){if(step.type==='choix'&&!st.firstChoice)document.getElementById('modal-first-choice').classList.add('open');else if(step.type==='side'&&!sideA){document.getElementById('side-modal-sub').textContent='Choisis ton side pour tout le match';document.getElementById('modal-side').classList.add('open');}}}
+
+function renderSeq(cur){const row=document.getElementById('seq-row');row.innerHTML=SEQ.map((s,i)=>{const cls=i<cur?'done':i===cur?'active':'';return`<div class="seq-pip ${s.type} ${cls}">${s.label.substring(0,1)}</div>`;}).join('');const act=row.querySelector('.active');if(act)act.scrollIntoView({behavior:'smooth',inline:'center',block:'nearest'});}
+
+function renderMaps(st,pool){const grid=document.getElementById('maps-grid');const acts=st.actions||{};const step=SEQ[st.currentStep];const canAct=isMyTurn&&step&&(step.type==='ban'||step.type==='pick');grid.innerHTML=pool.map(name=>{const act=Object.values(acts).find(a=>a.map===name);let cls='map-tile';let ov='';if(act){if(act.type==='ban'){cls+=' banned';ov=`<div class="map-ov"><div class="mov-icon">✕</div><div class="mov-label">Banni</div></div>`;}else if(act.type==='pick'){const isA=act.team===st.tA;cls+=isA?' picked-a':' picked-b';ov=`<div class="map-ov"><div class="mov-icon">${isA?'★':'◆'}</div><div class="mov-label">${act.team}</div></div>`;}else if(act.type==='decider'){cls+=' decider-map';ov=`<div class="map-ov"><div class="mov-icon">⚡</div><div class="mov-label">Décider</div></div>`;}}else if(canAct){cls+=' selectable';}else{cls+=' locked';}const click=canAct&&!act?`onclick="pickMap('${name}')"`:'';return`<div class="${cls}" ${click}><div class="map-name">${name}</div>${ov}</div>`;}).join('');}
+
+function renderPicks(st){const acts=Object.values(st.actions||{}).filter(a=>a.type==='pick'||a.type==='decider');const pp=document.getElementById('picks-preview');if(!acts.length){pp.style.display='none';return;}pp.style.display='block';document.getElementById('picks-list').innerHTML=acts.map((a,i)=>{const cls=a.type==='decider'?'pd':a.team===st.tA?'pa':'pb';return`<div class="pick-row ${cls}"><div class="pick-name">Map ${i+1} — ${a.map}</div><div class="pick-tag">${a.type==='decider'?'Décider':'Pick de '+a.team}</div></div>`;}).join('');}
+
+function startTimer(st){stopTimer();if(!st.timer||st.timer===0){document.getElementById('timer-el').textContent='∞';return;}const step=SEQ[st.currentStep];if(!step||step.type==='decider'){document.getElementById('timer-el').textContent='—';return;}function tick(){const el=document.getElementById('timer-el');const rem=Math.max(0,st.timer-Math.floor((Date.now()-st.stepStartedAt)/1000));el.textContent=rem;el.className='timer-ring '+(rem<=10?'urgent':rem<=20?'warn':'ok');if(rem===0){stopTimer();if(isMyTurn)autoAct(st);}}tick();timerInt=setInterval(tick,1000);}
+function stopTimer(){if(timerInt){clearInterval(timerInt);timerInt=null;}}
+function autoAct(st){const step=SEQ[st.currentStep];if(!step)return;if(step.type==='ban'||step.type==='pick'){const pool=st.mapPool||mapPool;const used=Object.values(st.actions||{}).map(a=>a.map);const avail=pool.filter(m=>!used.includes(m));if(avail.length>0)pickMap(avail[0]);}}
+
+async function pickMap(name){if(!isMyTurn||!pbState)return;const step=SEQ[pbState.currentStep];if(!step||(step.type!=='ban'&&step.type!=='pick'))return;const mid=pbMatch.l||(pbMatch.pool+'_'+pbMatch.slot);const key='step_'+pbState.currentStep;const pool=pbState.mapPool||mapPool;const usedAfter={...pbState.actions,[key]:{map:name}};const usedMaps=Object.values(usedAfter).map(a=>a.map);const remaining=pool.filter(m=>!usedMaps.includes(m));const updates={};updates['actions/'+key]={type:step.type,map:name,team:ME,step:pbState.currentStep};const nextStep=pbState.currentStep+1;updates['currentStep']=nextStep;updates['stepStartedAt']=Date.now();if(remaining.length===1&&nextStep>=SEQ.length-1){updates['actions/step_decider']={type:'decider',map:remaining[0],team:'auto',step:8};updates['currentStep']=9;updates['status']='done';}else if(nextStep>=SEQ.length){updates['status']='done';}await db.ref('pickban/'+mid).update(updates);}
+
+async function chooseFirst(choice){document.getElementById('modal-first-choice').classList.remove('open');const mid=pbMatch.l||(pbMatch.pool+'_'+pbMatch.slot);if(choice==='side'){await db.ref('pickban/'+mid).update({firstChoice:'side'});document.getElementById('modal-side').classList.add('open');}else{await db.ref('pickban/'+mid).update({firstChoice:'maps',currentStep:pbState.currentStep+1,stepStartedAt:Date.now()});}}
+
+async function chooseSide(side){document.getElementById('modal-side').classList.remove('open');if(!pbState)return;const mid=pbMatch.l||(pbMatch.pool+'_'+pbMatch.slot);const myIsA=ME===pbState.tA;const sideA=myIsA?side:(side==='yellow'?'blue':'yellow');const sideB=myIsA?(side==='yellow'?'blue':'yellow'):side;const updates={sideA,sideB,stepStartedAt:Date.now()};if(pbState.firstChoice==='side'){updates['firstChoice']='side_done';updates['currentStep']=1;}else{updates['currentStep']=pbState.currentStep+1;}await db.ref('pickban/'+mid).update(updates);}
+
+function showDoneOv(st){document.getElementById('pb-done-ov').classList.add('open');const sa=st.sideA==='yellow'?'JAUNE':'BLEU';const sb=st.sideB==='yellow'?'JAUNE':'BLEU';document.getElementById('done-side-a').textContent=(st.tA||'?')+' : '+sa;document.getElementById('done-side-b').textContent=(st.tB||'?')+' : '+sb;const acts=Object.values(st.actions||{}).filter(a=>a.type==='pick'||a.type==='decider');document.getElementById('done-maps-list').innerHTML=acts.map((a,i)=>`<div class="done-map-row ${a.type==='decider'?'d':a.team===st.tA?'a':'b'}"><div class="done-map-name">Map ${i+1} — ${a.map}</div><div class="done-map-info">${a.type==='decider'?'Décider':'Pick de '+a.team}</div></div>`).join('');}
+function closeDoneOv(){document.getElementById('pb-done-ov').classList.remove('open');closePB();}
+
+/* NAV */
+function switchPage(name){document.querySelectorAll('.page-content').forEach(p=>p.classList.remove('active'));document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));document.getElementById('page-'+name).classList.add('active');document.getElementById('nav-'+name).classList.add('active');}
+
+/* TOAST */
+function showToast(msg,type='success'){const t=document.getElementById('toast');t.textContent=msg;t.className='toast '+type+' show';setTimeout(()=>t.classList.remove('show'),3000);}
+
+/* SESSION */
+const saved=sessionStorage.getItem('sc_team');
+if(saved){db.ref('teams/'+saved).once('value').then(s=>{if(s.val())loginOK(saved);});}
+</script>
+</body>
+</html>

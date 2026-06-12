@@ -1,0 +1,309 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Savigny Cups — Admin</title>
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;500;600;700;800;900&family=Orbitron:wght@400;600;700;800;900&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-database-compat.js"></script>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{--bg:#080810;--bg2:#0e0e1a;--bg3:#161628;--bg4:#1e1e36;--cyan:#00e5ff;--mag:#ff0099;--gold:#ffd600;--grn:#00ff88;--red:#ff3355;--txt:#e0e0f0;--mut:#555580;--brd:rgba(255,255,255,.06);--font:'Barlow Condensed',sans-serif;}
+html{height:100%}
+body{background:var(--bg);color:var(--txt);font-family:var(--font);min-height:100%;padding:20px}
+body::-webkit-scrollbar{width:5px}
+body::-webkit-scrollbar-thumb{background:rgba(0,229,255,.12);border-radius:3px}
+h1{font-family:'Orbitron',sans-serif;font-size:1.3rem;font-weight:900;letter-spacing:4px;color:var(--gold);text-align:center;margin-bottom:4px}
+h2{font-family:'Orbitron',sans-serif;font-size:.65rem;font-weight:600;letter-spacing:3px;text-align:center;background:linear-gradient(90deg,var(--cyan),var(--mag));-webkit-background-clip:text;-webkit-text-fill-color:transparent;margin-bottom:20px}
+h3{font-family:'Orbitron',sans-serif;font-size:.8rem;letter-spacing:3px;color:var(--cyan);margin-bottom:10px;text-transform:uppercase}
+.card{background:var(--bg2);border:1px solid var(--brd);border-radius:10px;padding:20px;margin-bottom:16px}
+.main-tabs{display:flex;gap:4px;margin-bottom:20px;background:var(--bg2);border:1px solid var(--brd);border-radius:8px;padding:6px;}
+.main-tab{font-family:'Orbitron',sans-serif;font-size:.58rem;font-weight:700;letter-spacing:2px;text-transform:uppercase;padding:10px 8px;border:1px solid transparent;border-radius:5px;background:transparent;color:var(--mut);cursor:pointer;transition:all .15s;flex:1;text-align:center;}
+.main-tab:hover{color:var(--txt);}
+.main-tab.on{background:rgba(0,229,255,.1);border-color:rgba(0,229,255,.3);color:var(--cyan);}
+.main-tab.on.gold{background:rgba(255,214,0,.1);border-color:rgba(255,214,0,.3);color:var(--gold);}
+.main-view{display:none;}
+.main-view.on{display:block;}
+.login-field{margin-bottom:14px;}
+.login-field label{font-family:'Orbitron',sans-serif;font-size:.58rem;letter-spacing:2px;color:var(--mut);text-transform:uppercase;display:block;margin-bottom:6px;}
+.login-field input{width:100%;background:var(--bg3);border:1px solid var(--brd);border-radius:5px;padding:10px 14px;color:var(--txt);font-family:'Share Tech Mono',monospace;font-size:1rem;outline:none;}
+.login-field input:focus{border-color:rgba(0,229,255,.4);}
+#setup-section .info{font-size:.85rem;color:var(--mut);margin-bottom:14px;line-height:1.6}
+.cr{display:flex;align-items:center;gap:12px;margin-bottom:14px}
+.cr label{font-family:'Orbitron',sans-serif;font-size:.6rem;letter-spacing:2px;color:var(--mut);text-transform:uppercase}
+.ci{width:55px;text-align:center;background:var(--bg3);border:1px solid var(--brd);border-radius:5px;padding:7px;color:var(--cyan);font-family:'Share Tech Mono',monospace;font-size:1rem;outline:none}
+.tis{display:grid;grid-template-columns:1fr 1fr;gap:5px 12px}
+.ti{display:flex;align-items:center;gap:6px}
+.ti label{font-family:'Share Tech Mono',monospace;font-size:.65rem;color:var(--mut);min-width:20px;text-align:right}
+.ti input{flex:1;background:var(--bg3);border:1px solid var(--brd);border-radius:4px;padding:6px 10px;color:var(--txt);font-family:var(--font);font-size:.9rem;outline:none}
+.ti input:focus{border-color:rgba(0,229,255,.4)}
+.ti input::placeholder{color:var(--mut);font-style:italic}
+.btn{font-family:'Orbitron',sans-serif;font-size:.6rem;letter-spacing:2px;text-transform:uppercase;padding:10px 22px;border:none;border-radius:5px;cursor:pointer;font-weight:700;transition:all .2s}
+.btn-cy{background:linear-gradient(135deg,var(--cyan),#0090ff);color:#000}
+.btn-cy:hover{box-shadow:0 3px 14px rgba(0,229,255,.3)}
+.btn-sm{padding:5px 12px;font-size:.55rem}
+.btn-gh{background:transparent;border:1px solid var(--brd);color:var(--mut)}
+.btn-gh:hover{border-color:var(--cyan);color:var(--cyan)}
+.btn-red{background:linear-gradient(135deg,var(--red),#cc2244);color:#fff}
+.btn-gold{background:linear-gradient(135deg,var(--gold),#bb9900);color:#000}
+.btn-center{display:flex;gap:10px;justify-content:center;margin-top:16px}
+.tabs{display:flex;gap:4px;margin-bottom:14px;flex-wrap:wrap}
+.tab{font-family:var(--font);font-weight:700;font-size:.85rem;letter-spacing:1px;text-transform:uppercase;padding:6px 16px;border:1px solid var(--brd);border-radius:4px;background:transparent;color:var(--mut);cursor:pointer;transition:all .15s}
+.tab:hover{border-color:rgba(0,229,255,.3);color:var(--txt)}
+.tab.on{background:rgba(0,229,255,.1);border-color:rgba(0,229,255,.4);color:var(--cyan)}
+.tab-content{display:none}
+.tab-content.on{display:block}
+.mc{background:var(--bg3);border:1px solid var(--brd);border-radius:6px;padding:10px 12px;margin-bottom:6px}
+.mc.dn{opacity:.5}
+.mc-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px}
+.mc-n{font-family:'Share Tech Mono',monospace;font-size:.6rem;color:var(--mut)}
+.mc-t{font-family:'Share Tech Mono',monospace;font-size:.65rem;color:var(--cyan)}
+.mc-row{display:flex;align-items:center;gap:4px;margin-bottom:6px}
+.mc-tm{flex:1;text-align:center;font-weight:700;font-size:.95rem;padding:4px;border-radius:4px;background:var(--bg4)}
+.mc-tm.w{background:rgba(0,255,136,.1);color:var(--grn)}
+.mc-vs{font-family:'Share Tech Mono',monospace;font-size:.55rem;color:var(--mut);min-width:32px;text-align:center}
+.sc-row{display:flex;align-items:center;justify-content:center;gap:6px}
+.sc-row label{font-family:'Share Tech Mono',monospace;font-size:.55rem;color:var(--mut)}
+.sc-in{width:38px;text-align:center;background:var(--bg4);border:1px solid var(--brd);border-radius:4px;padding:6px;color:var(--txt);font-family:'Share Tech Mono',monospace;font-size:.95rem;outline:none}
+.sc-in:focus{border-color:rgba(0,229,255,.4)}
+.mc-btm{display:flex;gap:6px;justify-content:center;margin-top:6px}
+.bm{background:var(--bg3);border:1px solid var(--brd);border-radius:6px;padding:10px 12px;margin-bottom:8px}
+.bm-l{font-family:'Share Tech Mono',monospace;font-size:.6rem;color:var(--mut);margin-bottom:4px}
+.bm-t{display:flex;justify-content:space-between;align-items:center;padding:4px 8px;border-radius:4px;background:var(--bg4);font-size:.9rem;font-weight:700;margin-bottom:3px}
+.bm-t.w{background:rgba(0,255,136,.1);color:var(--grn)}
+.bm-t .sc{font-family:'Share Tech Mono',monospace;color:var(--gold)}
+.bm-m{text-align:center;font-size:.45rem;color:var(--mut)}
+.status{font-family:'Share Tech Mono',monospace;font-size:.7rem;color:var(--grn);text-align:center;margin:8px 0;letter-spacing:1px}
+.status.err{color:var(--red)}
+.hidden{display:none!important}
+.team-row{display:flex;align-items:center;justify-content:space-between;padding:10px 14px;background:var(--bg3);border:1px solid var(--brd);border-radius:6px;margin-bottom:6px;}
+.team-row-name{font-family:var(--font);font-size:1rem;font-weight:700;letter-spacing:1px;}
+.team-row-right{display:flex;align-items:center;gap:8px;}
+.status-pill{font-family:'Share Tech Mono',monospace;font-size:.55rem;letter-spacing:1px;text-transform:uppercase;padding:3px 8px;border-radius:3px;}
+.status-pill.ok{background:rgba(0,255,136,.15);color:var(--grn);}
+.status-pill.wait{background:rgba(255,214,0,.1);color:var(--gold);}
+.del-btn{background:none;border:none;color:var(--mut);cursor:pointer;font-size:1rem;padding:2px 6px;transition:color .2s;}
+.del-btn:hover{color:var(--red);}
+.add-row{display:flex;gap:8px;margin-bottom:14px;}
+.add-row input{flex:1;background:var(--bg3);border:1px solid var(--brd);border-radius:5px;padding:8px 12px;color:var(--txt);font-family:var(--font);font-size:.95rem;outline:none;}
+.add-row input:focus{border-color:rgba(0,229,255,.4);}
+.stat-row{display:flex;gap:12px;margin-bottom:16px;}
+.stat-box{flex:1;background:var(--bg3);border:1px solid var(--brd);border-radius:6px;padding:12px;text-align:center;}
+.stat-val{font-family:'Orbitron',sans-serif;font-size:1.6rem;font-weight:900;color:var(--gold);}
+.stat-lbl{font-family:'Share Tech Mono',monospace;font-size:.55rem;color:var(--mut);letter-spacing:1px;margin-top:4px;}
+.maps-grid-admin{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:8px;margin-bottom:16px;}
+.map-card-admin{background:var(--bg3);border:1px solid var(--brd);border-radius:6px;padding:12px;cursor:pointer;transition:all .2s;user-select:none;position:relative;}
+.map-card-admin.sel{border-color:rgba(255,214,0,.5);background:rgba(255,214,0,.06);}
+.map-card-admin:hover{border-color:rgba(0,229,255,.3);}
+.map-card-name{font-family:var(--font);font-size:.95rem;font-weight:700;letter-spacing:.5px;}
+.map-check{position:absolute;top:8px;right:8px;width:16px;height:16px;border:1px solid var(--brd);border-radius:3px;display:flex;align-items:center;justify-content:center;font-size:.65rem;}
+.map-card-admin.sel .map-check{background:var(--gold);border-color:var(--gold);color:#000;}
+.pool-count{font-family:'Share Tech Mono',monospace;font-size:.65rem;color:var(--mut);margin-bottom:12px;}
+.pool-count span{color:var(--gold);}
+.cfg-row{display:flex;align-items:center;justify-content:space-between;padding:12px 16px;background:var(--bg3);border:1px solid var(--brd);border-radius:6px;margin-bottom:8px;}
+.cfg-label{font-family:var(--font);font-size:.9rem;font-weight:600;}
+.cfg-sub{font-family:'Share Tech Mono',monospace;font-size:.55rem;color:var(--mut);margin-top:2px;}
+select{background:var(--bg4);border:1px solid var(--brd);color:var(--txt);padding:6px 12px;font-family:'Share Tech Mono',monospace;font-size:.75rem;border-radius:4px;outline:none;cursor:pointer;}
+.seq-preview{display:flex;flex-direction:column;gap:6px;margin-top:12px;}
+.seq-item{display:flex;align-items:center;gap:10px;padding:8px 12px;border-radius:5px;font-size:.85rem;}
+.seq-item.ban{background:rgba(255,51,85,.1);border-left:3px solid var(--red);}
+.seq-item.pick{background:rgba(0,255,136,.1);border-left:3px solid var(--grn);}
+.seq-item.choix{background:rgba(255,214,0,.1);border-left:3px solid var(--gold);}
+.seq-item.side{background:rgba(0,229,255,.1);border-left:3px solid var(--cyan);}
+.seq-item.decider{background:rgba(85,85,128,.1);border-left:3px solid var(--mut);}
+.seq-num{font-family:'Share Tech Mono',monospace;font-size:.6rem;color:var(--mut);width:18px;}
+.seq-type{font-family:'Orbitron',sans-serif;font-size:.6rem;font-weight:700;width:55px;}
+.seq-desc{font-size:.8rem;color:var(--txt);flex:1;}
+.seq-who{font-family:'Share Tech Mono',monospace;font-size:.6rem;color:var(--mut);}
+</style>
+</head>
+<body>
+
+<h1>SAVIGNY CUPS</h1>
+<h2>ADMIN — GESTION DU TOURNOI</h2>
+
+<div id="login-wrap" style="max-width:400px;margin:60px auto;">
+  <div class="card">
+    <h3>Connexion Admin</h3>
+    <div class="login-field">
+      <label>Mot de passe</label>
+      <input type="password" id="admin-pwd" placeholder="••••••••" onkeydown="if(event.key==='Enter')checkLogin()">
+    </div>
+    <div class="btn-center">
+      <button class="btn btn-cy" onclick="checkLogin()">Connexion</button>
+    </div>
+    <div class="status err" id="login-err" style="display:none;">Mot de passe incorrect</div>
+  </div>
+</div>
+
+<div id="admin-app" class="hidden">
+  <div class="main-tabs">
+    <button class="main-tab on gold" onclick="switchMain('tournoi',this)">Tournoi</button>
+    <button class="main-tab" onclick="switchMain('equipes',this)">Capitaines</button>
+    <button class="main-tab" onclick="switchMain('mappool',this)">Map Pool</button>
+    <button class="main-tab" onclick="switchMain('pb',this)">Pick &amp; Ban</button>
+  </div>
+
+  <!-- TOURNOI -->
+  <div class="main-view on" id="view-tournoi">
+    <div id="statusBar" class="status">Connexion à Firebase...</div>
+    <div class="card" id="setup-section">
+      <h3>Configuration du Tournoi</h3>
+      <div class="info">Entrez les noms des équipes. Elles seront réparties aléatoirement en 2 poules.</div>
+      <div class="cr">
+        <label>Nb équipes :</label>
+        <input type="number" class="ci" id="tc" min="4" max="32" value="15" onchange="rebI()">
+        <button class="btn btn-gh btn-sm" onclick="rebI()">OK</button>
+      </div>
+      <div class="tis" id="tis"></div>
+      <div class="btn-center">
+        <button class="btn btn-gold" onclick="launchTournament()">🚀 Lancer le Tournoi</button>
+      </div>
+    </div>
+    <div class="card hidden" id="match-section">
+      <h3>Saisie des Scores</h3>
+      <div class="tabs">
+        <button class="tab on" data-t="tA">Poule A — Arène A</button>
+        <button class="tab" data-t="tB">Poule B — Arène B</button>
+        <button class="tab" data-t="tBK">Bracket</button>
+      </div>
+      <div class="tab-content on" id="tA"></div>
+      <div class="tab-content" id="tB"></div>
+      <div class="tab-content" id="tBK"></div>
+    </div>
+    <div class="card hidden" id="danger-section" style="border-color:rgba(255,51,85,.15)">
+      <h3 style="color:var(--red)">Zone Danger</h3>
+      <div class="btn-center">
+        <button class="btn btn-red btn-sm" onclick="resetTournament()">🗑 Réinitialiser le Tournoi</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- CAPITAINES -->
+  <div class="main-view" id="view-equipes">
+    <div class="card">
+      <h3>Équipes &amp; Capitaines</h3>
+      <div class="stat-row">
+        <div class="stat-box"><div class="stat-val" id="cap-total">0</div><div class="stat-lbl">Équipes</div></div>
+        <div class="stat-box"><div class="stat-val" id="cap-ok">0</div><div class="stat-lbl">Connectés</div></div>
+        <div class="stat-box"><div class="stat-val" id="cap-wait">0</div><div class="stat-lbl">En attente</div></div>
+      </div>
+      <div class="add-row">
+        <input type="text" id="new-team-input" placeholder="Nom de l'équipe..." onkeydown="if(event.key==='Enter')addCaptainTeam()">
+        <button class="btn btn-cy btn-sm" onclick="addCaptainTeam()">Ajouter</button>
+      </div>
+      <div style="font-family:'Share Tech Mono',monospace;font-size:.6rem;color:var(--mut);margin-bottom:10px;" id="cap-count">0 / 16 équipes</div>
+      <div id="captain-teams-list"></div>
+      <div class="btn-center" style="margin-top:16px;">
+        <button class="btn btn-red btn-sm" onclick="resetAllCaptainPwd()">Réinitialiser tous les mdp</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MAP POOL -->
+  <div class="main-view" id="view-mappool">
+    <div class="card">
+      <h3>Map Pool Actif</h3>
+      <div class="pool-count">Maps sélectionnées : <span id="pool-sel">0</span> / 11</div>
+      <div class="maps-grid-admin" id="maps-grid-admin"></div>
+      <div class="btn-center">
+        <button class="btn btn-gold" onclick="saveMapPool()">Sauvegarder le Map Pool</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- PICK & BAN -->
+  <div class="main-view" id="view-pb">
+    <div class="card">
+      <h3>Configuration Pick &amp; Ban</h3>
+      <div class="cfg-row">
+        <div><div class="cfg-label">Format de match</div><div class="cfg-sub">Nombre de maps jouées</div></div>
+        <select id="cfg-format"><option value="bo3">BO3 — Best of 3</option><option value="bo5">BO5 — Best of 5</option></select>
+      </div>
+      <div class="cfg-row">
+        <div><div class="cfg-label">Timer par action</div><div class="cfg-sub">Durée max pour ban / pick</div></div>
+        <select id="cfg-timer"><option value="30">30 secondes</option><option value="45" selected>45 secondes</option><option value="60">60 secondes</option><option value="0">Sans timer</option></select>
+      </div>
+      <div class="btn-center"><button class="btn btn-cy" onclick="savePBConfig()">Sauvegarder</button></div>
+    </div>
+    <div class="card">
+      <h3>Séquence BO3</h3>
+      <div class="seq-preview" id="seq-preview"></div>
+    </div>
+  </div>
+</div>
+
+<script>
+const firebaseConfig={apiKey:"AIzaSyAJ5VS2HQTguUaOS6RmFocVz3FY0kC7M74",authDomain:"savigny-major-cup.firebaseapp.com",databaseURL:"https://savigny-major-cup-default-rtdb.europe-west1.firebasedatabase.app",projectId:"savigny-major-cup",storageBucket:"savigny-major-cup.firebasestorage.app",messagingSenderId:"739304547260",appId:"1:739304547260:web:10b130b42d3f859b9ac1b9"};
+firebase.initializeApp(firebaseConfig);
+const db=firebase.database();
+const ADMIN_PASSWORD="eva2025admin";
+const ALL_MAPS=['Artefact','Atlantis','Ceres','Engine','Helios Station','Horizon','Lunar Outpost','Outlaw','Polaris','Silva','The Cliff'];
+const BO3_SEQ=[{type:'choix',who:'starter',label:'Choix',desc:'Choisit : maps ou side'},{type:'side',who:'other',label:'Side',desc:'Choisit Jaune ou Bleu'},{type:'ban',who:'starter',label:'Ban',desc:'Ban map 1'},{type:'ban',who:'other',label:'Ban',desc:'Ban map 2'},{type:'pick',who:'starter',label:'Pick',desc:'Pick map 1'},{type:'pick',who:'other',label:'Pick',desc:'Pick map 2'},{type:'ban',who:'starter',label:'Ban',desc:'Ban map 3'},{type:'ban',who:'other',label:'Ban',desc:'Ban map 4'},{type:'decider',who:'auto',label:'Auto',desc:'Map restante = map 3'}];
+
+function checkLogin(){const pwd=document.getElementById('admin-pwd').value;if(pwd===ADMIN_PASSWORD){document.getElementById('login-wrap').classList.add('hidden');document.getElementById('admin-app').classList.remove('hidden');initAdmin();}else{document.getElementById('login-err').style.display='block';}}
+document.getElementById('admin-pwd').addEventListener('keydown',e=>{if(e.key==='Enter')checkLogin();});
+
+function switchMain(name,el){document.querySelectorAll('.main-tab').forEach(t=>{t.classList.remove('on');t.classList.remove('gold');});document.querySelectorAll('.main-view').forEach(v=>v.classList.remove('on'));el.classList.add('on');if(name==='tournoi')el.classList.add('gold');document.getElementById('view-'+name).classList.add('on');}
+
+function initAdmin(){initTournoi();loadCaptainTeams();loadMapPool();loadPBConfig();renderMapsGrid();renderSeqPreview();}
+
+/* TOURNOI */
+let state=null;
+const tRef=db.ref('tournament');
+
+function rebI(){const n=Math.max(4,Math.min(32,parseInt(document.getElementById('tc').value)||15));document.getElementById('tc').value=n;const c=document.getElementById('tis');c.innerHTML='';for(let i=1;i<=n;i++){const d=document.createElement('div');d.className='ti';d.innerHTML=`<label>${i}</label><input type="text" id="t${i}" placeholder="Équipe ${i}" maxlength="30">`;c.appendChild(d);}}
+
+function circleRounds(pool){const list=[...pool];if(list.length%2!==0)list.push(null);const n=list.length;const rounds=[];for(let r=0;r<n-1;r++){const round=[];for(let i=0;i<n/2;i++){const a=list[i],b=list[n-1-i];if(a!==null&&b!==null)round.push([a,b]);}rounds.push(round);const last=list.pop();list.splice(1,0,last);}return rounds;}
+
+function schedulePool(pool,pid){const rounds=circleRounds(pool);const matches=[];let si=0;const SH=10,SM=0,SLOT=25;rounds.forEach(round=>{round.forEach(([a,b])=>{const t=SH*60+SM+si*SLOT;const time=`${String(Math.floor(t/60)).padStart(2,'0')}h${String(t%60).padStart(2,'0')}`;matches.push({tA:a,tB:b,pool:pid,slot:si,time,sA:0,sB:0,done:false});si++;});});return matches;}
+
+function initTournoi(){rebI();document.querySelectorAll('.tab').forEach(b=>b.addEventListener('click',function(){document.querySelectorAll('.tab').forEach(x=>x.classList.remove('on'));this.classList.add('on');document.querySelectorAll('.tab-content').forEach(v=>v.classList.remove('on'));document.getElementById(this.dataset.t).classList.add('on');}));tRef.on('value',snap=>{state=snap.val();if(state&&state.started){if(state.bk){if(state.bk.qf&&!Array.isArray(state.bk.qf))state.bk.qf=Object.values(state.bk.qf);if(state.bk.sf&&!Array.isArray(state.bk.sf))state.bk.sf=Object.values(state.bk.sf);}if(state.mA&&!Array.isArray(state.mA))state.mA=Object.values(state.mA);if(state.mBp&&!Array.isArray(state.mBp))state.mBp=Object.values(state.mBp);document.getElementById('setup-section').classList.add('hidden');document.getElementById('match-section').classList.remove('hidden');document.getElementById('danger-section').classList.remove('hidden');renderMatches();setStatus('Connecté — Tournoi en cours');}else{document.getElementById('setup-section').classList.remove('hidden');document.getElementById('match-section').classList.add('hidden');document.getElementById('danger-section').classList.add('hidden');setStatus('En attente — Aucun tournoi actif');}});}
+
+window.launchTournament=async function(){const n=parseInt(document.getElementById('tc').value)||15;const teams=[];for(let i=1;i<=n;i++){const el=document.getElementById(`t${i}`);teams.push(el?el.value.trim()||`Équipe ${i}`:`Équipe ${i}`);}const sh=[...teams];for(let i=sh.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[sh[i],sh[j]]=[sh[j],sh[i]];}const half=Math.ceil(sh.length/2);const pA=sh.slice(0,half),pB=sh.slice(half);const staA={},staB={};pA.forEach(t=>{staA[t]={w:0,l:0,pts:0,rw:0,rl:0};});pB.forEach(t=>{staB[t]={w:0,l:0,pts:0,rw:0,rl:0};});const data={started:true,teams,pA,pB,mA:schedulePool(pA,'A'),mBp:schedulePool(pB,'B'),sta:{A:staA,B:staB},bk:{qf:[null,null,null,null],sf:[null,null],pf:null,fi:null}};try{await tRef.set(data);setStatus('Tournoi lancé !');}catch(e){setStatus('Erreur : '+e.message,true);}};
+
+function renderMatches(){if(!state)return;renderPoolMatches('tA',state.mA||[],'A');renderPoolMatches('tB',state.mBp||[],'B');renderBracketAdmin();}
+
+function renderPoolMatches(elId,matches,pool){const el=document.getElementById(elId);const saved={};matches.forEach((_,idx)=>{const ia=document.getElementById(`p${pool}a${idx}`);const ib=document.getElementById(`p${pool}b${idx}`);if(ia||ib)saved[idx]={a:ia?ia.value:'0',b:ib?ib.value:'0'};});const done=matches.filter(m=>m.done).length;el.innerHTML=`<div style="font-family:'Share Tech Mono',monospace;font-size:.65rem;color:var(--mut);margin-bottom:10px">${done}/${matches.length} matchs joués</div>`+matches.map((m,idx)=>{const dn=m.done?'dn':'';const wA=m.done&&m.sA>m.sB,wB=m.done&&m.sB>m.sA;return`<div class="mc ${dn}"><div class="mc-top"><span class="mc-n">M${String(idx+1).padStart(2,'0')}</span><span class="mc-t">${m.time}</span></div><div class="mc-row"><div class="mc-tm${wA?' w':''}">${m.tA}</div><div class="mc-vs">${m.done?m.sA+'-'+m.sB:'VS'}</div><div class="mc-tm${wB?' w':''}">${m.tB}</div></div>${!m.done?`<div class="sc-row"><label>Rounds:</label><input type="number" class="sc-in" id="p${pool}a${idx}" min="0" max="2" value="0"><span style="color:var(--mut)">—</span><input type="number" class="sc-in" id="p${pool}b${idx}" min="0" max="2" value="0"></div><div class="mc-btm"><button class="btn btn-cy btn-sm" onclick="submitScore('${pool}',${idx})">Valider</button></div>`:`<div class="mc-btm"><button class="btn btn-gh btn-sm" onclick="resetScore('${pool}',${idx})">Reset</button></div>`}</div>`;}).join('');if(done===matches.length)el.innerHTML+=`<div style="text-align:center;color:var(--grn);font-family:'Orbitron',sans-serif;font-size:.7rem;letter-spacing:2px;margin:14px 0">✓ POULE ${pool} TERMINÉE</div>`;Object.entries(saved).forEach(([idx,v])=>{const ia=document.getElementById(`p${pool}a${idx}`);const ib=document.getElementById(`p${pool}b${idx}`);if(ia&&v.a!=='0')ia.value=v.a;if(ib&&v.b!=='0')ib.value=v.b;});}
+
+window.submitScore=async function(pool,idx){const a=parseInt(document.getElementById(`p${pool}a${idx}`).value)||0;const b=parseInt(document.getElementById(`p${pool}b${idx}`).value)||0;if(a===b){alert('BO3 : il faut un vainqueur');return;}if(Math.max(a,b)!==2){alert('Vainqueur = 2 rounds (BO3)');return;}const key=pool==='A'?'mA':'mBp';const m=state[key][idx];m.sA=a;m.sB=b;m.done=true;const s=state.sta[pool];if(a>b){s[m.tA].w++;s[m.tA].pts++;s[m.tB].l++;}else{s[m.tB].w++;s[m.tB].pts++;s[m.tA].l++;}s[m.tA].rw+=a;s[m.tA].rl+=b;s[m.tB].rw+=b;s[m.tB].rl+=a;const qf=state.bk&&state.bk.qf;const bracketReady=!qf||!Array.isArray(qf)||!qf[0]||!qf[0].tA;if(state.mA.every(x=>x.done)&&state.mBp.every(x=>x.done)&&bracketReady)generateBracket();try{await tRef.set(state);setStatus('Score enregistré !');renderBracketAdmin();}catch(e){setStatus('Erreur : '+e.message,true);}};
+
+window.resetScore=async function(pool,idx){const key=pool==='A'?'mA':'mBp';const m=state[key][idx];if(!m.done)return;const s=state.sta[pool];if(m.sA>m.sB){s[m.tA].w--;s[m.tA].pts--;s[m.tB].l--;}else{s[m.tB].w--;s[m.tB].pts--;s[m.tA].l--;}s[m.tA].rw-=m.sA;s[m.tA].rl-=m.sB;s[m.tB].rw-=m.sB;s[m.tB].rl-=m.sA;m.sA=0;m.sB=0;m.done=false;try{await tRef.set(state);setStatus('Score réinitialisé');}catch(e){setStatus('Erreur : '+e.message,true);}};
+
+function gS(pid){return Object.entries(state.sta[pid]).sort((a,b)=>{if(b[1].pts!==a[1].pts)return b[1].pts-a[1].pts;const da=a[1].rw-a[1].rl,db=b[1].rw-b[1].rl;if(db!==da)return db-da;return b[1].rw-a[1].rw;});}
+
+function generateBracket(){const tA=gS('A').slice(0,4).map(([n])=>n);const tB=gS('B').slice(0,4).map(([n])=>n);state.bk={qf:[{tA:tA[0],tB:tB[3],sA:0,sB:0,done:false,l:'QF1 — A1 vs B4'},{tA:tB[1],tB:tA[2],sA:0,sB:0,done:false,l:'QF2 — B2 vs A3'},{tA:tB[0],tB:tA[3],sA:0,sB:0,done:false,l:'QF3 — B1 vs A4'},{tA:tA[1],tB:tB[2],sA:0,sB:0,done:false,l:'QF4 — A2 vs B3'}],sf:[{tA:'',tB:'',sA:0,sB:0,done:false,l:'Demi-Finale 1'},{tA:'',tB:'',sA:0,sB:0,done:false,l:'Demi-Finale 2'}],pf:{tA:'',tB:'',sA:0,sB:0,done:false,l:'Petite Finale — 3ème place'},fi:{tA:'',tB:'',sA:0,sB:0,done:false,l:'★ GRANDE FINALE ★'}};}
+
+function renderBracketAdmin(){const el=document.getElementById('tBK');if(!state||!state.bk){el.innerHTML=`<div style="text-align:center;color:var(--mut);font-family:'Share Tech Mono',monospace;font-size:.7rem;padding:20px">Terminez les poules pour débloquer le bracket</div>`;return;}if(state.bk.qf&&!Array.isArray(state.bk.qf))state.bk.qf=Object.values(state.bk.qf);if(state.bk.sf&&!Array.isArray(state.bk.sf))state.bk.sf=Object.values(state.bk.sf);const bk=state.bk;if(!bk.qf||!bk.qf[0]||!bk.qf[0].tA){el.innerHTML=`<div style="text-align:center;color:var(--mut);font-family:'Share Tech Mono',monospace;font-size:.7rem;padding:20px">Terminez les poules pour débloquer le bracket</div>`;return;}function rbA(m,rd,i){if(!m||!m.tA)return`<div class="bm"><div class="bm-l">${m?m.l:'—'}</div><div class="bm-t" style="color:var(--mut)">TBD</div><div class="bm-m">VS</div><div class="bm-t" style="color:var(--mut)">TBD</div></div>`;const wA=m.done&&m.sA>m.sB,wB=m.done&&m.sB>m.sA;const canPlay=m.tA&&m.tB&&!m.done;return`<div class="bm"><div class="bm-l">${m.l}</div><div class="bm-t${wA?' w':''}"><span>${m.tA}</span>${m.done?`<span class="sc">${m.sA}</span>`:''}</div><div class="bm-m">VS</div><div class="bm-t${wB?' w':''}"><span>${m.tB||'TBD'}</span>${m.done?`<span class="sc">${m.sB}</span>`:''}</div>${canPlay?`<div class="sc-row" style="margin-top:6px"><label>Rounds:</label><input type="number" class="sc-in" id="bk${rd}a${i}" min="0" max="2" value="0"><span style="color:var(--mut)">—</span><input type="number" class="sc-in" id="bk${rd}b${i}" min="0" max="2" value="0"></div><div class="mc-btm"><button class="btn btn-cy btn-sm" onclick="submitBK('${rd}',${i})">Valider</button></div>`:''}${m.done?`<div class="mc-btm"><button class="btn btn-gh btn-sm" onclick="resetBK('${rd}',${i})">Reset</button></div>`:''}</div>`;}el.innerHTML=`<div style="font-family:'Orbitron',sans-serif;font-size:.65rem;letter-spacing:2px;color:var(--grn);margin-bottom:8px">QUARTS DE FINALE</div>${bk.qf.map((m,i)=>rbA(m,'qf',i)).join('')}<div style="font-family:'Orbitron',sans-serif;font-size:.65rem;letter-spacing:2px;color:var(--grn);margin:12px 0 8px">DEMI-FINALES</div>${bk.sf.map((m,i)=>rbA(m,'sf',i)).join('')}<div style="font-family:'Orbitron',sans-serif;font-size:.65rem;letter-spacing:2px;color:rgba(205,127,50,.8);margin:12px 0 8px">PETITE FINALE</div>${rbA(bk.pf,'pf',0)}<div style="font-family:'Orbitron',sans-serif;font-size:.65rem;letter-spacing:2px;color:var(--gold);margin:12px 0 8px">★ GRANDE FINALE</div>${rbA(bk.fi,'fi',0)}`;}
+
+window.submitBK=async function(rd,i){const a=parseInt(document.getElementById(`bk${rd}a${i}`).value)||0;const b=parseInt(document.getElementById(`bk${rd}b${i}`).value)||0;if(a===b){alert('Il faut un vainqueur');return;}if(Math.max(a,b)!==2){alert('Vainqueur = 2 rounds (BO3)');return;}const bk=state.bk;let m;if(rd==='qf')m=bk.qf[i];else if(rd==='sf')m=bk.sf[i];else if(rd==='pf')m=bk.pf;else m=bk.fi;m.sA=a;m.sB=b;m.done=true;const w=a>b?m.tA:m.tB;const l=a>b?m.tB:m.tA;if(rd==='qf'){if(i<2)bk.sf[0][i===0?'tA':'tB']=w;else bk.sf[1][i===2?'tA':'tB']=w;}else if(rd==='sf'){bk.fi[i===0?'tA':'tB']=w;bk.pf[i===0?'tA':'tB']=l;}try{await tRef.set(state);setStatus('Score bracket enregistré !');}catch(e){setStatus('Erreur : '+e.message,true);}};
+
+window.resetBK=async function(rd,i){const bk=state.bk;let m;if(rd==='qf')m=bk.qf[i];else if(rd==='sf')m=bk.sf[i];else if(rd==='pf')m=bk.pf;else m=bk.fi;m.sA=0;m.sB=0;m.done=false;if(rd==='qf'){const si=i<2?0:1,pr=(i===0||i===2)?'tA':'tB';bk.sf[si][pr]='';bk.sf[si].sA=0;bk.sf[si].sB=0;bk.sf[si].done=false;bk.pf.tA='';bk.pf.tB='';bk.pf.sA=0;bk.pf.sB=0;bk.pf.done=false;bk.fi.tA='';bk.fi.tB='';bk.fi.sA=0;bk.fi.sB=0;bk.fi.done=false;}else if(rd==='sf'){bk.fi[i===0?'tA':'tB']='';bk.fi.sA=0;bk.fi.sB=0;bk.fi.done=false;bk.pf[i===0?'tA':'tB']='';bk.pf.sA=0;bk.pf.sB=0;bk.pf.done=false;}try{await tRef.set(state);setStatus('Score bracket réinitialisé');}catch(e){setStatus('Erreur : '+e.message,true);}};
+
+window.resetTournament=async function(){if(!confirm('⚠️ Réinitialiser complètement le tournoi ?'))return;if(!confirm('Vraiment sûr ? Irréversible.'))return;try{await tRef.set(null);setStatus('Tournoi réinitialisé');}catch(e){setStatus('Erreur : '+e.message,true);};};
+
+function setStatus(msg,err=false){const el=document.getElementById('statusBar');el.textContent=msg;el.className='status'+(err?' err':'');}
+
+/* CAPITAINES */
+let captainTeams={};
+function loadCaptainTeams(){db.ref('teams').on('value',snap=>{captainTeams=snap.val()||{};renderCaptainTeams();});}
+function renderCaptainTeams(){const keys=Object.keys(captainTeams);const active=keys.filter(k=>captainTeams[k].passwordSet).length;document.getElementById('cap-total').textContent=keys.length;document.getElementById('cap-ok').textContent=active;document.getElementById('cap-wait').textContent=keys.length-active;document.getElementById('cap-count').textContent=keys.length+' / 16 équipes';const list=document.getElementById('captain-teams-list');if(!keys.length){list.innerHTML=`<div style="text-align:center;color:var(--mut);font-family:'Share Tech Mono',monospace;font-size:.65rem;padding:20px;">Aucune équipe.</div>`;return;}list.innerHTML=keys.map(k=>{const t=captainTeams[k];const pill=t.passwordSet?`<span class="status-pill ok">Connecté</span>`:`<span class="status-pill wait">En attente</span>`;return`<div class="team-row"><div class="team-row-name">${k}</div><div class="team-row-right">${pill}<button class="del-btn" onclick="deleteCaptainTeam('${k}')">✕</button></div></div>`;}).join('');}
+function addCaptainTeam(){const inp=document.getElementById('new-team-input');const name=inp.value.trim();if(!name)return;if(captainTeams[name]){alert('Équipe déjà existante');return;}if(Object.keys(captainTeams).length>=16){alert('Maximum 16 équipes');return;}db.ref('teams/'+name).set({name,passwordSet:false,passwordHash:null,createdAt:Date.now()});inp.value='';}
+function deleteCaptainTeam(name){if(!confirm('Supprimer '+name+' ?'))return;db.ref('teams/'+name).remove();}
+function resetAllCaptainPwd(){if(!confirm('Réinitialiser TOUS les mots de passe ?'))return;const updates={};Object.keys(captainTeams).forEach(k=>{updates['teams/'+k+'/passwordSet']=false;updates['teams/'+k+'/passwordHash']=null;});db.ref().update(updates);}
+
+/* MAP POOL */
+let selectedMaps=new Set();
+function loadMapPool(){db.ref('config/mapPool').once('value',snap=>{const pool=snap.val();if(pool){selectedMaps=new Set(pool);renderMapsGrid();}});}
+function renderMapsGrid(){const grid=document.getElementById('maps-grid-admin');if(!grid)return;grid.innerHTML=ALL_MAPS.map(m=>`<div class="map-card-admin ${selectedMaps.has(m)?'sel':''}" onclick="toggleMap('${m}',this)"><div class="map-card-name">${m}</div><div class="map-check">${selectedMaps.has(m)?'✓':''}</div></div>`).join('');document.getElementById('pool-sel').textContent=selectedMaps.size;}
+function toggleMap(name,el){if(selectedMaps.has(name)){selectedMaps.delete(name);el.classList.remove('sel');el.querySelector('.map-check').textContent='';}else{selectedMaps.add(name);el.classList.add('sel');el.querySelector('.map-check').textContent='✓';}document.getElementById('pool-sel').textContent=selectedMaps.size;}
+function saveMapPool(){if(selectedMaps.size<1){alert('Sélectionne au moins une map');return;}db.ref('config/mapPool').set([...selectedMaps],()=>alert('Map pool sauvegardé !'));}
+
+/* PB CONFIG */
+function renderSeqPreview(){const el=document.getElementById('seq-preview');if(!el)return;const colors={ban:'var(--red)',pick:'var(--grn)',choix:'var(--gold)',side:'var(--cyan)',decider:'var(--mut)'};el.innerHTML=BO3_SEQ.map((s,i)=>`<div class="seq-item ${s.type}"><span class="seq-num">${i+1}</span><span class="seq-type" style="color:${colors[s.type]}">${s.label}</span><span class="seq-desc">${s.desc}</span><span class="seq-who">Éq. ${s.who==='starter'?'A (tirage)':s.who==='other'?'B':'Auto'}</span></div>`).join('');}
+function loadPBConfig(){db.ref('config/pickban').once('value',snap=>{const cfg=snap.val();if(cfg){if(cfg.format)document.getElementById('cfg-format').value=cfg.format;if(cfg.timer)document.getElementById('cfg-timer').value=cfg.timer;}});}
+function savePBConfig(){const cfg={format:document.getElementById('cfg-format').value,timer:parseInt(document.getElementById('cfg-timer').value),sequence:BO3_SEQ,updatedAt:Date.now()};db.ref('config/pickban').set(cfg,()=>alert('Config P&B sauvegardée !'));}
+</script>
+</body>
+</html>

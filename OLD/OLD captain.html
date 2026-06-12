@@ -1,0 +1,1170 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>Savigny Cups — Capitaine</title>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-database-compat.js"></script>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;500;600;700&family=Inter:wght@300;400;500&display=swap');
+
+:root {
+  --bg: #0a0a0f;
+  --bg2: #111118;
+  --bg3: #1a1a24;
+  --border: #ffffff12;
+  --border2: #ffffff22;
+  --accent: #e8c04a;
+  --accent2: #c4a03a;
+  --text: #f0f0f8;
+  --muted: #6060a0;
+  --danger: #e84a4a;
+  --success: #4ae888;
+  --yellow: #f5d020;
+  --blue: #4a90e8;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: 'Inter', sans-serif;
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+/* ── LOGIN ── */
+#login-screen {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  background: radial-gradient(ellipse at 50% 0%, #1a1a3a 0%, var(--bg) 70%);
+}
+
+.login-logo {
+  font-family: 'Rajdhani', sans-serif;
+  font-size: 32px;
+  font-weight: 700;
+  letter-spacing: 5px;
+  color: var(--accent);
+  text-align: center;
+  margin-bottom: 4px;
+}
+
+.login-sub {
+  font-size: 11px;
+  letter-spacing: 3px;
+  color: var(--muted);
+  text-transform: uppercase;
+  text-align: center;
+  margin-bottom: 48px;
+}
+
+.login-box {
+  width: 100%;
+  max-width: 380px;
+  background: var(--bg2);
+  border: 1px solid var(--border2);
+  border-radius: 4px;
+  padding: 32px 28px;
+}
+
+.login-step {
+  font-size: 10px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: var(--accent);
+  margin-bottom: 20px;
+}
+
+label {
+  display: block;
+  font-size: 10px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: var(--muted);
+  margin-bottom: 8px;
+}
+
+select, input[type="password"], input[type="text"] {
+  width: 100%;
+  background: var(--bg3);
+  border: 1px solid var(--border2);
+  color: var(--text);
+  padding: 14px 16px;
+  font-family: 'Inter', sans-serif;
+  font-size: 15px;
+  border-radius: 4px;
+  outline: none;
+  transition: border-color .2s;
+  margin-bottom: 20px;
+  -webkit-appearance: none;
+}
+
+select { cursor: pointer; }
+input:focus, select:focus { border-color: var(--accent); }
+
+.btn {
+  width: 100%;
+  padding: 15px;
+  background: var(--accent);
+  color: #000;
+  border: none;
+  font-family: 'Rajdhani', sans-serif;
+  font-size: 17px;
+  font-weight: 700;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  cursor: pointer;
+  border-radius: 4px;
+  transition: background .2s;
+}
+.btn:hover, .btn:active { background: var(--accent2); }
+.btn:disabled { opacity: .4; cursor: not-allowed; }
+
+.btn.secondary {
+  background: transparent;
+  border: 1px solid var(--border2);
+  color: var(--muted);
+  font-size: 14px;
+  margin-top: 10px;
+}
+
+.error-msg {
+  color: var(--danger);
+  font-size: 12px;
+  margin: -12px 0 16px;
+  display: none;
+}
+
+/* ── APP ── */
+#app { display: none; flex-direction: column; min-height: 100vh; }
+
+/* HEADER */
+.app-header {
+  background: var(--bg2);
+  border-bottom: 1px solid var(--border);
+  padding: 14px 20px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+
+.app-header-left { display: flex; flex-direction: column; }
+
+.app-logo {
+  font-family: 'Rajdhani', sans-serif;
+  font-size: 18px;
+  font-weight: 700;
+  letter-spacing: 3px;
+  color: var(--accent);
+  line-height: 1;
+}
+
+.app-team {
+  font-size: 11px;
+  color: var(--muted);
+  letter-spacing: 1px;
+  margin-top: 2px;
+}
+
+.logout-btn {
+  background: none;
+  border: 1px solid var(--border);
+  color: var(--muted);
+  padding: 6px 12px;
+  font-size: 11px;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  cursor: pointer;
+  border-radius: 4px;
+  font-family: 'Inter', sans-serif;
+}
+
+/* NAV */
+.bottom-nav {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: var(--bg2);
+  border-top: 1px solid var(--border);
+  display: flex;
+  z-index: 100;
+  padding-bottom: env(safe-area-inset-bottom);
+}
+
+.nav-item {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 10px 0;
+  cursor: pointer;
+  transition: color .2s;
+  color: var(--muted);
+  font-size: 9px;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  font-family: 'Rajdhani', sans-serif;
+  font-weight: 600;
+  gap: 4px;
+  position: relative;
+}
+
+.nav-item.active { color: var(--accent); }
+.nav-item svg { width: 22px; height: 22px; }
+
+.nav-badge {
+  position: absolute;
+  top: 6px;
+  right: calc(50% - 18px);
+  background: var(--danger);
+  color: #fff;
+  font-size: 9px;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: 'Inter', sans-serif;
+  font-weight: 600;
+}
+
+/* CONTENT */
+.page-content {
+  flex: 1;
+  padding: 20px 16px 90px;
+  display: none;
+}
+.page-content.active { display: block; }
+
+/* SECTION TITLE */
+.section-title {
+  font-family: 'Rajdhani', sans-serif;
+  font-size: 20px;
+  font-weight: 700;
+  letter-spacing: 2px;
+  margin-bottom: 20px;
+  color: var(--text);
+}
+
+/* MATCH CARD */
+.match-card {
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  padding: 18px;
+  margin-bottom: 12px;
+  position: relative;
+  overflow: hidden;
+}
+
+.match-card::before {
+  content: '';
+  position: absolute;
+  left: 0; top: 0; bottom: 0;
+  width: 3px;
+  background: var(--accent);
+}
+
+.match-card.done::before { background: var(--muted); }
+.match-card.ongoing::before { background: var(--success); }
+
+.match-time {
+  font-family: 'Rajdhani', sans-serif;
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 2px;
+  color: var(--accent);
+  margin-bottom: 10px;
+}
+
+.match-card.done .match-time { color: var(--muted); }
+.match-card.ongoing .match-time { color: var(--success); }
+
+.match-teams {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+
+.match-team {
+  flex: 1;
+  font-family: 'Rajdhani', sans-serif;
+  font-size: 16px;
+  font-weight: 700;
+  letter-spacing: 1px;
+}
+
+.match-team.mine { color: var(--accent); }
+
+.match-vs {
+  font-size: 11px;
+  color: var(--muted);
+  font-weight: 600;
+}
+
+.match-score {
+  font-family: 'Rajdhani', sans-serif;
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--text);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.score-sep { color: var(--muted); font-size: 14px; }
+
+.match-meta {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.match-tag {
+  font-size: 10px;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  padding: 3px 8px;
+  border-radius: 2px;
+  background: var(--bg3);
+  color: var(--muted);
+}
+
+.match-tag.pool { color: var(--accent); background: #e8c04a15; }
+.match-tag.done-tag { color: var(--muted); }
+.match-tag.live { color: var(--success); background: #4ae88815; animation: pulse 1.5s infinite; }
+
+@keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.6} }
+
+.pb-btn {
+  width: 100%;
+  margin-top: 12px;
+  padding: 10px;
+  background: var(--bg3);
+  border: 1px solid var(--accent);
+  color: var(--accent);
+  font-family: 'Rajdhani', sans-serif;
+  font-size: 14px;
+  font-weight: 700;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  cursor: pointer;
+  border-radius: 4px;
+  transition: all .2s;
+}
+.pb-btn:hover { background: #e8c04a15; }
+
+.empty-state {
+  text-align: center;
+  padding: 60px 20px;
+  color: var(--muted);
+}
+.empty-state .big { font-size: 40px; margin-bottom: 16px; }
+.empty-state p { font-size: 13px; line-height: 1.6; }
+
+/* ── CHAT ── */
+.chat-list { display: flex; flex-direction: column; gap: 8px; margin-bottom: 16px; }
+
+.chat-contact {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 14px 16px;
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  cursor: pointer;
+  transition: border-color .2s;
+}
+.chat-contact:hover, .chat-contact:active { border-color: var(--border2); }
+
+.contact-avatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: var(--bg3);
+  border: 1px solid var(--border2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: 'Rajdhani', sans-serif;
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--accent);
+  flex-shrink: 0;
+}
+
+.contact-avatar.admin { color: var(--blue); }
+
+.contact-info { flex: 1; min-width: 0; }
+
+.contact-name {
+  font-family: 'Rajdhani', sans-serif;
+  font-size: 15px;
+  font-weight: 700;
+  letter-spacing: 1px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.contact-preview {
+  font-size: 12px;
+  color: var(--muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  margin-top: 2px;
+}
+
+.contact-unread {
+  background: var(--danger);
+  color: #fff;
+  font-size: 10px;
+  font-weight: 700;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+/* CHAT VIEW */
+#chat-view {
+  display: none;
+  flex-direction: column;
+  position: fixed;
+  inset: 0;
+  background: var(--bg);
+  z-index: 200;
+}
+
+#chat-view.open { display: flex; }
+
+.chat-header {
+  background: var(--bg2);
+  border-bottom: 1px solid var(--border);
+  padding: 14px 16px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.chat-back {
+  background: none;
+  border: none;
+  color: var(--accent);
+  font-size: 20px;
+  cursor: pointer;
+  padding: 4px 8px;
+  line-height: 1;
+}
+
+.chat-title {
+  font-family: 'Rajdhani', sans-serif;
+  font-size: 18px;
+  font-weight: 700;
+  letter-spacing: 1px;
+  flex: 1;
+}
+
+.chat-messages {
+  flex: 1;
+  overflow-y: auto;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.msg {
+  max-width: 80%;
+  padding: 10px 14px;
+  border-radius: 12px;
+  font-size: 14px;
+  line-height: 1.5;
+  word-break: break-word;
+}
+
+.msg.mine {
+  align-self: flex-end;
+  background: var(--accent);
+  color: #000;
+  border-bottom-right-radius: 4px;
+}
+
+.msg.theirs {
+  align-self: flex-start;
+  background: var(--bg2);
+  border: 1px solid var(--border2);
+  color: var(--text);
+  border-bottom-left-radius: 4px;
+}
+
+.msg-time {
+  font-size: 10px;
+  margin-top: 4px;
+  opacity: .6;
+}
+
+.chat-input-bar {
+  background: var(--bg2);
+  border-top: 1px solid var(--border);
+  padding: 12px 16px;
+  padding-bottom: calc(12px + env(safe-area-inset-bottom));
+  display: flex;
+  gap: 10px;
+  align-items: flex-end;
+}
+
+.chat-input {
+  flex: 1;
+  background: var(--bg3);
+  border: 1px solid var(--border2);
+  color: var(--text);
+  padding: 12px 14px;
+  font-family: 'Inter', sans-serif;
+  font-size: 14px;
+  border-radius: 20px;
+  outline: none;
+  resize: none;
+  max-height: 100px;
+  line-height: 1.4;
+}
+
+.send-btn {
+  width: 44px;
+  height: 44px;
+  background: var(--accent);
+  border: none;
+  border-radius: 50%;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  transition: background .2s;
+}
+.send-btn:hover { background: var(--accent2); }
+.send-btn svg { width: 18px; height: 18px; }
+
+/* ── PROFIL ── */
+.profil-card {
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  padding: 24px;
+  margin-bottom: 16px;
+}
+
+.profil-avatar {
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  background: var(--bg3);
+  border: 2px solid var(--accent);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: 'Rajdhani', sans-serif;
+  font-size: 28px;
+  font-weight: 700;
+  color: var(--accent);
+  margin-bottom: 16px;
+}
+
+.profil-name {
+  font-family: 'Rajdhani', sans-serif;
+  font-size: 26px;
+  font-weight: 700;
+  letter-spacing: 2px;
+  margin-bottom: 4px;
+}
+
+.profil-role {
+  font-size: 11px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: var(--muted);
+  margin-bottom: 20px;
+}
+
+.profil-stat {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 20px;
+}
+
+.pstat {
+  flex: 1;
+  background: var(--bg3);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  padding: 12px;
+  text-align: center;
+}
+
+.pstat-val {
+  font-family: 'Rajdhani', sans-serif;
+  font-size: 24px;
+  font-weight: 700;
+  color: var(--accent);
+}
+
+.pstat-label {
+  font-size: 10px;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  color: var(--muted);
+  margin-top: 2px;
+}
+
+/* TOAST */
+.toast {
+  position: fixed;
+  bottom: 90px;
+  left: 50%;
+  transform: translateX(-50%) translateY(20px);
+  background: var(--bg2);
+  border: 1px solid var(--border2);
+  color: var(--text);
+  padding: 12px 20px;
+  font-size: 13px;
+  border-radius: 20px;
+  z-index: 999;
+  opacity: 0;
+  transition: all .3s;
+  white-space: nowrap;
+  pointer-events: none;
+}
+.toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+.toast.success { border-color: var(--success); color: var(--success); }
+.toast.error { border-color: var(--danger); color: var(--danger); }
+</style>
+</head>
+<body>
+
+<!-- LOGIN -->
+<div id="login-screen">
+  <div class="login-logo">SAVIGNY CUPS</div>
+  <div class="login-sub">Espace Capitaine</div>
+
+  <div class="login-box">
+    <!-- STEP 1: choisir équipe -->
+    <div id="step1">
+      <div class="login-step">Étape 1 — Ton équipe</div>
+      <label>Sélectionne ton équipe</label>
+      <select id="team-select">
+        <option value="">Chargement...</option>
+      </select>
+      <button class="btn" onclick="goStep2()">Continuer</button>
+    </div>
+
+    <!-- STEP 2: mdp -->
+    <div id="step2" style="display:none;">
+      <div class="login-step" id="step2-label">Étape 2 — Mot de passe</div>
+      <label id="pwd-label">Ton mot de passe</label>
+      <input type="password" id="pwd-input" placeholder="••••••••" onkeydown="if(event.key==='Enter')doLogin()">
+      <div class="error-msg" id="login-err">Mot de passe incorrect</div>
+
+      <!-- Confirm pwd (premier login) -->
+      <div id="confirm-pwd-wrap" style="display:none;">
+        <label>Confirme ton mot de passe</label>
+        <input type="password" id="pwd-confirm" placeholder="••••••••" onkeydown="if(event.key==='Enter')doLogin()">
+      </div>
+
+      <button class="btn" onclick="doLogin()" id="login-btn">Se connecter</button>
+      <button class="btn secondary" onclick="backStep1()">Retour</button>
+    </div>
+  </div>
+</div>
+
+<!-- APP -->
+<div id="app" style="display:none;flex-direction:column;min-height:100vh;">
+
+  <div class="app-header">
+    <div class="app-header-left">
+      <div class="app-logo">SAVIGNY CUPS</div>
+      <div class="app-team" id="header-team">—</div>
+    </div>
+    <button class="logout-btn" onclick="doLogout()">Quitter</button>
+  </div>
+
+  <!-- PLANNING -->
+  <div class="page-content active" id="page-planning">
+    <div class="section-title">Mon planning</div>
+    <div id="matches-list"><div class="empty-state"><div class="big">⏳</div><p>Chargement des matchs...</p></div></div>
+  </div>
+
+  <!-- CHAT -->
+  <div class="page-content" id="page-chat">
+    <div class="section-title">Messages</div>
+    <div class="chat-list" id="chat-list"></div>
+  </div>
+
+  <!-- PROFIL -->
+  <div class="page-content" id="page-profil">
+    <div class="section-title">Mon profil</div>
+    <div class="profil-card">
+      <div class="profil-avatar" id="profil-avatar">?</div>
+      <div class="profil-name" id="profil-name">—</div>
+      <div class="profil-role">Capitaine</div>
+      <div class="profil-stat">
+        <div class="pstat">
+          <div class="pstat-val" id="profil-total">0</div>
+          <div class="pstat-label">Matchs</div>
+        </div>
+        <div class="pstat">
+          <div class="pstat-val" id="profil-wins">0</div>
+          <div class="pstat-label">Victoires</div>
+        </div>
+        <div class="pstat">
+          <div class="pstat-val" id="profil-losses">0</div>
+          <div class="pstat-label">Défaites</div>
+        </div>
+      </div>
+    </div>
+    <button class="btn secondary" onclick="doLogout()" style="margin-top:8px;">Se déconnecter</button>
+  </div>
+
+  <!-- NAV -->
+  <nav class="bottom-nav">
+    <div class="nav-item active" id="nav-planning" onclick="switchPage('planning')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round">
+        <rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/>
+      </svg>
+      Planning
+    </div>
+    <div class="nav-item" id="nav-chat" onclick="switchPage('chat')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round">
+        <path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/>
+      </svg>
+      <span id="nav-chat-label">Chat</span>
+      <div class="nav-badge" id="chat-badge" style="display:none;">0</div>
+    </div>
+    <div class="nav-item" id="nav-profil" onclick="switchPage('profil')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round">
+        <path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/>
+      </svg>
+      Profil
+    </div>
+  </nav>
+</div>
+
+<!-- CHAT VIEW -->
+<div id="chat-view">
+  <div class="chat-header">
+    <button class="chat-back" onclick="closeChat()">←</button>
+    <div class="chat-title" id="chat-view-title">—</div>
+  </div>
+  <div class="chat-messages" id="chat-messages"></div>
+  <div class="chat-input-bar">
+    <textarea class="chat-input" id="chat-input" placeholder="Message..." rows="1" onkeydown="handleChatKey(event)" oninput="autoResize(this)"></textarea>
+    <button class="send-btn" onclick="sendMessage()">
+      <svg viewBox="0 0 24 24" fill="none" stroke="#000" stroke-width="2.5" stroke-linecap="round">
+        <line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/>
+      </svg>
+    </button>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const firebaseConfig = {
+  apiKey: "AIzaSyAJ5VS2HQTguUaOS6RmFocVz3FY0kC7M74",
+  authDomain: "savigny-major-cup.firebaseapp.com",
+  databaseURL: "https://savigny-major-cup-default-rtdb.europe-west1.firebasedatabase.app",
+  projectId: "savigny-major-cup",
+  storageBucket: "savigny-major-cup.firebasestorage.app",
+  messagingSenderId: "739304547260",
+  appId: "1:739304547260:web:10b130b42d3f859b9ac1b9"
+};
+
+firebase.initializeApp(firebaseConfig);
+const db = firebase.database();
+
+let currentTeam = null;
+let currentChatWith = null;
+let chatListener = null;
+let unreadCounts = {};
+
+/* ── HASH ── */
+async function hashPassword(pwd) {
+  const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(pwd));
+  return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2,'0')).join('');
+}
+
+/* ── LOGIN ── */
+async function loadTeams() {
+  const snap = await db.ref('teams').once('value');
+  const teams = snap.val() || {};
+  const sel = document.getElementById('team-select');
+  sel.innerHTML = '<option value="">-- Sélectionne ton équipe --</option>';
+  Object.keys(teams).sort().forEach(name => {
+    sel.innerHTML += `<option value="${name}">${name}</option>`;
+  });
+}
+
+loadTeams();
+
+let selectedTeamData = null;
+
+async function goStep2() {
+  const name = document.getElementById('team-select').value;
+  if (!name) { showToast('Sélectionne ton équipe', 'error'); return; }
+
+  const snap = await db.ref('teams/' + name).once('value');
+  selectedTeamData = snap.val();
+
+  if (!selectedTeamData) { showToast('Équipe introuvable', 'error'); return; }
+
+  document.getElementById('step1').style.display = 'none';
+  document.getElementById('step2').style.display = 'block';
+
+  if (!selectedTeamData.passwordSet) {
+    document.getElementById('step2-label').textContent = 'Étape 2 — Crée ton mot de passe';
+    document.getElementById('pwd-label').textContent = 'Choisis un mot de passe';
+    document.getElementById('confirm-pwd-wrap').style.display = 'block';
+    document.getElementById('login-btn').textContent = 'Créer mon compte';
+  } else {
+    document.getElementById('step2-label').textContent = 'Étape 2 — Connexion';
+    document.getElementById('pwd-label').textContent = 'Ton mot de passe';
+    document.getElementById('login-btn').textContent = 'Se connecter';
+  }
+}
+
+function backStep1() {
+  document.getElementById('step2').style.display = 'none';
+  document.getElementById('step1').style.display = 'block';
+  document.getElementById('login-err').style.display = 'none';
+  document.getElementById('pwd-input').value = '';
+  document.getElementById('pwd-confirm').value = '';
+}
+
+async function doLogin() {
+  const name = document.getElementById('team-select').value;
+  const pwd = document.getElementById('pwd-input').value;
+  if (!pwd) return;
+
+  const btn = document.getElementById('login-btn');
+  btn.disabled = true;
+  btn.textContent = '...';
+
+  const hash = await hashPassword(pwd);
+
+  if (!selectedTeamData.passwordSet) {
+    const confirm = document.getElementById('pwd-confirm').value;
+    if (pwd !== confirm) {
+      document.getElementById('login-err').textContent = 'Les mots de passe ne correspondent pas';
+      document.getElementById('login-err').style.display = 'block';
+      btn.disabled = false;
+      btn.textContent = 'Créer mon compte';
+      return;
+    }
+    await db.ref('teams/' + name).update({ passwordSet: true, passwordHash: hash });
+    loginSuccess(name);
+  } else {
+    if (hash !== selectedTeamData.passwordHash) {
+      document.getElementById('login-err').style.display = 'block';
+      btn.disabled = false;
+      btn.textContent = 'Se connecter';
+      return;
+    }
+    loginSuccess(name);
+  }
+}
+
+function loginSuccess(name) {
+  currentTeam = name;
+  sessionStorage.setItem('captain_team', name);
+  document.getElementById('login-screen').style.display = 'none';
+  document.getElementById('app').style.display = 'flex';
+  document.getElementById('header-team').textContent = name;
+  document.getElementById('profil-name').textContent = name;
+  document.getElementById('profil-avatar').textContent = name.charAt(0).toUpperCase();
+  loadMatches();
+  loadChatContacts();
+}
+
+function doLogout() {
+  currentTeam = null;
+  sessionStorage.removeItem('captain_team');
+  document.getElementById('login-screen').style.display = 'flex';
+  document.getElementById('app').style.display = 'none';
+  document.getElementById('step1').style.display = 'block';
+  document.getElementById('step2').style.display = 'none';
+  document.getElementById('pwd-input').value = '';
+  document.getElementById('pwd-confirm').value = '';
+  document.getElementById('login-err').style.display = 'none';
+  document.getElementById('login-btn').disabled = false;
+}
+
+/* ── PLANNING ── */
+function loadMatches() {
+  const pools = ['A','B','C','D'];
+  let allMatches = [];
+
+  let loaded = 0;
+  pools.forEach(pool => {
+    db.ref('matches/' + pool).on('value', snap => {
+      const data = snap.val();
+      if (data) {
+        Object.values(data).forEach(m => {
+          if (m.tA === currentTeam || m.tB === currentTeam) {
+            allMatches = allMatches.filter(x => !(x.pool === m.pool && x.slot === m.slot));
+            allMatches.push(m);
+          }
+        });
+      }
+      loaded++;
+      if (loaded >= pools.length) renderMatches(allMatches);
+    });
+  });
+
+  db.ref('tournament').on('value', snap => {
+    const data = snap.val();
+    if (!data) return;
+    ['wb','lb','finals','barrage'].forEach(phase => {
+      if (!data[phase]) return;
+      Object.values(data[phase]).forEach(m => {
+        if (!m || typeof m !== 'object') return;
+        if (m.tA === currentTeam || m.tB === currentTeam) {
+          allMatches = allMatches.filter(x => x.l !== m.l);
+          allMatches.push({ ...m, phase });
+        }
+      });
+    });
+    renderMatches(allMatches);
+  });
+}
+
+function renderMatches(matches) {
+  const list = document.getElementById('matches-list');
+  if (!matches.length) {
+    list.innerHTML = '<div class="empty-state"><div class="big">📋</div><p>Aucun match trouvé pour ton équipe.<br>Le planning sera visible une fois le tournoi lancé.</p></div>';
+    return;
+  }
+
+  matches.sort((a, b) => (a.time || '').localeCompare(b.time || ''));
+
+  let wins = 0, losses = 0;
+  matches.forEach(m => {
+    if (m.done) {
+      const iA = m.tA === currentTeam;
+      if ((iA && m.sA > m.sB) || (!iA && m.sB > m.sA)) wins++;
+      else losses++;
+    }
+  });
+  document.getElementById('profil-total').textContent = matches.length;
+  document.getElementById('profil-wins').textContent = wins;
+  document.getElementById('profil-losses').textContent = losses;
+
+  list.innerHTML = matches.map(m => {
+    const isMine_A = m.tA === currentTeam;
+    const myTeam = isMine_A ? m.tA : m.tB;
+    const opponent = isMine_A ? m.tB : m.tA;
+    const myScore = isMine_A ? (m.sA ?? '—') : (m.sB ?? '—');
+    const oppScore = isMine_A ? (m.sB ?? '—') : (m.sA ?? '—');
+    const isDone = m.done;
+    const isLive = !isDone && m.started;
+    const phase = m.pool ? `Poule ${m.pool}` : (m.phase ? m.phase.toUpperCase() : '');
+
+    return `
+    <div class="match-card ${isDone ? 'done' : ''} ${isLive ? 'ongoing' : ''}">
+      <div class="match-time">${m.time || 'Horaire à définir'}</div>
+      <div class="match-teams">
+        <div class="match-team mine">${myTeam}</div>
+        <div class="match-vs">VS</div>
+        <div class="match-team">${opponent || '—'}</div>
+      </div>
+      ${isDone ? `<div class="match-score"><span>${myScore}</span><span class="score-sep">—</span><span>${oppScore}</span></div>` : ''}
+      <div class="match-meta">
+        ${phase ? `<span class="match-tag pool">${phase}</span>` : ''}
+        ${isDone ? '<span class="match-tag done-tag">Terminé</span>' : ''}
+        ${isLive ? '<span class="match-tag live">En cours</span>' : ''}
+        ${!isDone && !isLive ? '<span class="match-tag">À venir</span>' : ''}
+      </div>
+      ${!isDone && opponent ? `<button class="pb-btn" onclick="openPB('${opponent}', '${m.l || ''}')">Pick & Ban</button>` : ''}
+    </div>`;
+  }).join('');
+}
+
+/* ── CHAT ── */
+function getChatKey(a, b) {
+  return [a, b].sort().join('__');
+}
+
+function loadChatContacts() {
+  db.ref('teams').on('value', snap => {
+    const teams = snap.val() || {};
+    const list = document.getElementById('chat-list');
+    list.innerHTML = '';
+
+    const contacts = ['ADMIN', ...Object.keys(teams).filter(t => t !== currentTeam).sort()];
+
+    contacts.forEach(contact => {
+      const key = getChatKey(currentTeam, contact);
+      const isAdmin = contact === 'ADMIN';
+      const initial = isAdmin ? 'A' : contact.charAt(0).toUpperCase();
+
+      const div = document.createElement('div');
+      div.className = 'chat-contact';
+      div.id = 'contact-' + contact;
+      div.innerHTML = `
+        <div class="contact-avatar ${isAdmin ? 'admin' : ''}">${initial}</div>
+        <div class="contact-info">
+          <div class="contact-name">${isAdmin ? 'Admin EVA' : contact}</div>
+          <div class="contact-preview" id="preview-${contact}">...</div>
+        </div>
+        <div class="contact-unread" id="unread-${contact}" style="display:none;">0</div>`;
+      div.onclick = () => openChat(contact);
+      list.appendChild(div);
+
+      db.ref('chats/' + key).limitToLast(1).on('value', snap => {
+        const data = snap.val();
+        if (data) {
+          const last = Object.values(data)[0];
+          document.getElementById('preview-' + contact).textContent = last.text;
+          if (last.from !== currentTeam && !last.read) {
+            unreadCounts[contact] = (unreadCounts[contact] || 0) + 1;
+            updateUnread(contact);
+          }
+        } else {
+          document.getElementById('preview-' + contact).textContent = 'Aucun message';
+        }
+      });
+    });
+  });
+}
+
+function updateUnread(contact) {
+  const count = unreadCounts[contact] || 0;
+  const el = document.getElementById('unread-' + contact);
+  if (el) {
+    el.style.display = count > 0 ? 'flex' : 'none';
+    el.textContent = count;
+  }
+  const total = Object.values(unreadCounts).reduce((a, b) => a + b, 0);
+  const badge = document.getElementById('chat-badge');
+  badge.style.display = total > 0 ? 'flex' : 'none';
+  badge.textContent = total;
+}
+
+function openChat(contact) {
+  currentChatWith = contact;
+  const isAdmin = contact === 'ADMIN';
+  document.getElementById('chat-view-title').textContent = isAdmin ? 'Admin EVA' : contact;
+  document.getElementById('chat-view').classList.add('open');
+  document.getElementById('chat-messages').innerHTML = '';
+
+  unreadCounts[contact] = 0;
+  updateUnread(contact);
+
+  const key = getChatKey(currentTeam, contact);
+  if (chatListener) db.ref('chats/' + chatListener).off();
+  chatListener = 'chats/' + key;
+
+  db.ref('chats/' + key).on('value', snap => {
+    const data = snap.val() || {};
+    const msgs = document.getElementById('chat-messages');
+    msgs.innerHTML = '';
+    Object.values(data).sort((a,b) => a.ts - b.ts).forEach(m => {
+      const isMine = m.from === currentTeam;
+      const d = new Date(m.ts);
+      const time = d.getHours().toString().padStart(2,'0') + ':' + d.getMinutes().toString().padStart(2,'0');
+      msgs.innerHTML += `
+        <div class="msg ${isMine ? 'mine' : 'theirs'}">
+          ${m.text}
+          <div class="msg-time">${time}</div>
+        </div>`;
+    });
+    msgs.scrollTop = msgs.scrollHeight;
+  });
+}
+
+function closeChat() {
+  document.getElementById('chat-view').classList.remove('open');
+  if (chatListener) {
+    db.ref(chatListener).off();
+    chatListener = null;
+  }
+  currentChatWith = null;
+}
+
+async function sendMessage() {
+  const input = document.getElementById('chat-input');
+  const text = input.value.trim();
+  if (!text || !currentChatWith) return;
+
+  const key = getChatKey(currentTeam, currentChatWith);
+  await db.ref('chats/' + key).push({
+    from: currentTeam,
+    to: currentChatWith,
+    text,
+    ts: Date.now(),
+    read: false
+  });
+  input.value = '';
+  input.style.height = 'auto';
+}
+
+function handleChatKey(e) {
+  if (e.key === 'Enter' && !e.shiftKey) {
+    e.preventDefault();
+    sendMessage();
+  }
+}
+
+function autoResize(el) {
+  el.style.height = 'auto';
+  el.style.height = Math.min(el.scrollHeight, 100) + 'px';
+}
+
+/* ── PICK & BAN ── */
+function openPB(opponent, matchId) {
+  showToast('Pick & Ban bientôt disponible', 'success');
+}
+
+/* ── NAV ── */
+function switchPage(name) {
+  document.querySelectorAll('.page-content').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  document.getElementById('page-' + name).classList.add('active');
+  document.getElementById('nav-' + name).classList.add('active');
+}
+
+/* ── TOAST ── */
+function showToast(msg, type = 'success') {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.className = 'toast ' + type + ' show';
+  setTimeout(() => t.classList.remove('show'), 3000);
+}
+
+/* ── SESSION ── */
+const saved = sessionStorage.getItem('captain_team');
+if (saved) {
+  db.ref('teams/' + saved).once('value').then(snap => {
+    if (snap.val()) loginSuccess(saved);
+  });
+}
+</script>
+</body>
+</html>

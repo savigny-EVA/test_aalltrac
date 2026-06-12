@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Savigny Cups</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;500;600;700&family=Inter:wght@300;400;500&display=swap');
+
+:root {
+  --bg: #0a0a0f;
+  --bg2: #111118;
+  --bg3: #1a1a24;
+  --border: #ffffff12;
+  --border2: #ffffff22;
+  --accent: #e8c04a;
+  --text: #f0f0f8;
+  --muted: #6060a0;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: 'Inter', sans-serif;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 40px 24px;
+  background-image:
+    radial-gradient(ellipse at 50% 0%, #1a1a3a 0%, transparent 60%),
+    radial-gradient(ellipse at 50% 100%, #0a0a20 0%, transparent 60%);
+}
+
+.logo {
+  font-family: 'Rajdhani', sans-serif;
+  font-size: 42px;
+  font-weight: 700;
+  letter-spacing: 8px;
+  color: var(--accent);
+  text-align: center;
+  margin-bottom: 4px;
+}
+
+.tagline {
+  font-size: 11px;
+  letter-spacing: 4px;
+  color: var(--muted);
+  text-transform: uppercase;
+  text-align: center;
+  margin-bottom: 60px;
+}
+
+.main-card {
+  background: var(--bg2);
+  border: 1px solid var(--border2);
+  border-radius: 8px;
+  padding: 40px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 24px;
+  max-width: 400px;
+  width: 100%;
+}
+
+.card-label {
+  font-size: 10px;
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  color: var(--muted);
+  text-align: center;
+}
+
+.qr-wrapper {
+  background: #fff;
+  padding: 16px;
+  border-radius: 4px;
+  display: inline-block;
+}
+
+#qrcode canvas, #qrcode img {
+  display: block;
+}
+
+.card-title {
+  font-family: 'Rajdhani', sans-serif;
+  font-size: 22px;
+  font-weight: 700;
+  letter-spacing: 2px;
+  text-align: center;
+  color: var(--text);
+}
+
+.card-sub {
+  font-size: 13px;
+  color: var(--muted);
+  text-align: center;
+  line-height: 1.6;
+}
+
+.url-pill {
+  background: var(--bg3);
+  border: 1px solid var(--border2);
+  border-radius: 4px;
+  padding: 10px 16px;
+  font-family: 'Inter', sans-serif;
+  font-size: 13px;
+  color: var(--accent);
+  letter-spacing: 1px;
+  text-align: center;
+  word-break: break-all;
+}
+
+.divider {
+  width: 100%;
+  height: 1px;
+  background: var(--border);
+}
+
+.links {
+  display: flex;
+  gap: 12px;
+  width: 100%;
+}
+
+.link-btn {
+  flex: 1;
+  padding: 12px;
+  background: var(--bg3);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  color: var(--muted);
+  font-size: 11px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  font-family: 'Rajdhani', sans-serif;
+  font-weight: 600;
+  text-align: center;
+  text-decoration: none;
+  transition: all .2s;
+  cursor: pointer;
+}
+
+.link-btn:hover { border-color: var(--accent); color: var(--accent); }
+.link-btn.primary { background: var(--accent); color: #000; border-color: var(--accent); }
+.link-btn.primary:hover { background: #c4a03a; }
+
+.footer {
+  margin-top: 40px;
+  font-size: 11px;
+  color: var(--muted);
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  text-align: center;
+  opacity: .5;
+}
+</style>
+</head>
+<body>
+
+<div class="logo">SAVIGNY CUPS</div>
+<div class="tagline">EVA Savigny-le-Temple · Esports</div>
+
+<div class="main-card">
+  <div class="card-label">Espace capitaine</div>
+
+  <div class="qr-wrapper">
+    <div id="qrcode"></div>
+  </div>
+
+  <div class="card-title">Scanne pour accéder</div>
+  <div class="card-sub">Connecte-toi avec le nom de ton équipe et ton mot de passe pour accéder à ton planning, le chat et le Pick & Ban.</div>
+
+  <div class="url-pill" id="url-display">savigny-cups.netlify.app/captain.html</div>
+
+  <div class="divider"></div>
+
+  <div class="links">
+    <a class="link-btn primary" href="captain.html">Ouvrir</a>
+    <a class="link-btn" href="admin.html">Admin</a>
+  </div>
+</div>
+
+<div class="footer">EVA Savigny · Savigny-le-Temple · 77</div>
+
+<script>
+const CAPTAIN_URL = 'https://savigny-cups.netlify.app/captain.html';
+
+document.getElementById('url-display').textContent = CAPTAIN_URL;
+
+new QRCode(document.getElementById('qrcode'), {
+  text: CAPTAIN_URL,
+  width: 220,
+  height: 220,
+  colorDark: '#000000',
+  colorLight: '#ffffff',
+  correctLevel: QRCode.CorrectLevel.H
+});
+</script>
+</body>
+</html>

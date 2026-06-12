@@ -1,0 +1,865 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>EVA Major Cup — Admin</title>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-database-compat.js"></script>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;500;600;700&family=Inter:wght@300;400;500&display=swap');
+
+  :root {
+    --bg: #0a0a0f;
+    --bg2: #111118;
+    --bg3: #1a1a24;
+    --border: #ffffff12;
+    --border2: #ffffff22;
+    --accent: #e8c04a;
+    --accent2: #c4a03a;
+    --text: #f0f0f8;
+    --muted: #7070a0;
+    --danger: #e84a4a;
+    --success: #4ae888;
+    --yellow: #f5d020;
+    --blue: #4a90e8;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Inter', sans-serif;
+    min-height: 100vh;
+  }
+
+  /* LOGIN */
+  #login-screen {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: radial-gradient(ellipse at 50% 0%, #1a1a3a 0%, var(--bg) 70%);
+  }
+
+  .login-box {
+    width: 360px;
+    padding: 48px 40px;
+    border: 1px solid var(--border2);
+    background: var(--bg2);
+    border-radius: 2px;
+  }
+
+  .login-logo {
+    font-family: 'Rajdhani', sans-serif;
+    font-size: 28px;
+    font-weight: 700;
+    letter-spacing: 4px;
+    color: var(--accent);
+    margin-bottom: 4px;
+  }
+
+  .login-sub {
+    font-size: 11px;
+    letter-spacing: 3px;
+    color: var(--muted);
+    text-transform: uppercase;
+    margin-bottom: 40px;
+  }
+
+  label {
+    display: block;
+    font-size: 10px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 8px;
+  }
+
+  input[type="password"], input[type="text"] {
+    width: 100%;
+    background: var(--bg3);
+    border: 1px solid var(--border2);
+    color: var(--text);
+    padding: 12px 16px;
+    font-family: 'Inter', sans-serif;
+    font-size: 14px;
+    border-radius: 2px;
+    outline: none;
+    transition: border-color .2s;
+    margin-bottom: 24px;
+  }
+
+  input:focus { border-color: var(--accent); }
+
+  .btn {
+    width: 100%;
+    padding: 13px;
+    background: var(--accent);
+    color: #000;
+    border: none;
+    font-family: 'Rajdhani', sans-serif;
+    font-size: 16px;
+    font-weight: 700;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    cursor: pointer;
+    border-radius: 2px;
+    transition: background .2s;
+  }
+
+  .btn:hover { background: var(--accent2); }
+  .btn.danger { background: var(--danger); color: #fff; }
+  .btn.danger:hover { background: #c03a3a; }
+  .btn.sm {
+    width: auto;
+    padding: 8px 16px;
+    font-size: 13px;
+  }
+  .btn.ghost {
+    background: transparent;
+    border: 1px solid var(--border2);
+    color: var(--muted);
+  }
+  .btn.ghost:hover { border-color: var(--accent); color: var(--accent); }
+
+  .error-msg {
+    color: var(--danger);
+    font-size: 12px;
+    margin-top: -16px;
+    margin-bottom: 16px;
+    display: none;
+  }
+
+  /* MAIN APP */
+  #app { display: none; }
+
+  header {
+    background: var(--bg2);
+    border-bottom: 1px solid var(--border);
+    padding: 0 32px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    height: 60px;
+  }
+
+  .header-logo {
+    font-family: 'Rajdhani', sans-serif;
+    font-size: 20px;
+    font-weight: 700;
+    letter-spacing: 3px;
+    color: var(--accent);
+  }
+
+  .header-badge {
+    font-size: 10px;
+    letter-spacing: 2px;
+    color: var(--muted);
+    text-transform: uppercase;
+  }
+
+  .logout-btn {
+    background: none;
+    border: 1px solid var(--border2);
+    color: var(--muted);
+    padding: 6px 14px;
+    font-size: 11px;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    cursor: pointer;
+    border-radius: 2px;
+    font-family: 'Inter', sans-serif;
+    transition: all .2s;
+  }
+  .logout-btn:hover { border-color: var(--danger); color: var(--danger); }
+
+  /* TABS */
+  .tabs {
+    display: flex;
+    border-bottom: 1px solid var(--border);
+    background: var(--bg2);
+    padding: 0 32px;
+  }
+
+  .tab {
+    padding: 16px 24px;
+    font-size: 11px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--muted);
+    cursor: pointer;
+    border-bottom: 2px solid transparent;
+    transition: all .2s;
+    font-family: 'Rajdhani', sans-serif;
+    font-weight: 600;
+  }
+
+  .tab.active { color: var(--accent); border-bottom-color: var(--accent); }
+  .tab:hover:not(.active) { color: var(--text); }
+
+  /* CONTENT */
+  .content { padding: 40px 32px; max-width: 900px; }
+
+  .section-title {
+    font-family: 'Rajdhani', sans-serif;
+    font-size: 22px;
+    font-weight: 700;
+    letter-spacing: 2px;
+    margin-bottom: 8px;
+    color: var(--text);
+  }
+
+  .section-sub {
+    font-size: 12px;
+    color: var(--muted);
+    margin-bottom: 32px;
+    line-height: 1.6;
+  }
+
+  /* CARD */
+  .card {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: 2px;
+    padding: 24px;
+    margin-bottom: 16px;
+  }
+
+  /* EQUIPES */
+  .add-team-row {
+    display: flex;
+    gap: 12px;
+    margin-bottom: 24px;
+  }
+
+  .add-team-row input { margin-bottom: 0; flex: 1; }
+
+  .add-team-row .btn { width: auto; padding: 12px 24px; }
+
+  .teams-list { display: flex; flex-direction: column; gap: 8px; }
+
+  .team-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 14px 18px;
+    background: var(--bg3);
+    border: 1px solid var(--border);
+    border-radius: 2px;
+    transition: border-color .2s;
+  }
+
+  .team-item:hover { border-color: var(--border2); }
+
+  .team-name {
+    font-family: 'Rajdhani', sans-serif;
+    font-size: 16px;
+    font-weight: 600;
+    letter-spacing: 1px;
+  }
+
+  .team-status {
+    font-size: 10px;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    padding: 4px 10px;
+    border-radius: 2px;
+  }
+
+  .team-status.active { background: #4ae88820; color: var(--success); }
+  .team-status.pending { background: #e8c04a20; color: var(--accent); }
+
+  .team-actions { display: flex; gap: 8px; align-items: center; }
+
+  .del-btn {
+    background: none;
+    border: none;
+    color: var(--muted);
+    cursor: pointer;
+    font-size: 16px;
+    padding: 4px 8px;
+    transition: color .2s;
+  }
+  .del-btn:hover { color: var(--danger); }
+
+  .teams-count {
+    font-size: 12px;
+    color: var(--muted);
+    margin-bottom: 16px;
+  }
+
+  .teams-count span { color: var(--accent); font-weight: 600; }
+
+  /* MAP POOL */
+  .map-pool-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 20px;
+  }
+
+  .pool-count {
+    font-size: 12px;
+    color: var(--muted);
+  }
+
+  .pool-count span { color: var(--accent); font-weight: 600; }
+
+  .maps-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+    gap: 10px;
+  }
+
+  .map-card {
+    background: var(--bg3);
+    border: 1px solid var(--border);
+    border-radius: 2px;
+    padding: 16px;
+    cursor: pointer;
+    transition: all .2s;
+    user-select: none;
+    position: relative;
+  }
+
+  .map-card.selected {
+    border-color: var(--accent);
+    background: #e8c04a10;
+  }
+
+  .map-card:hover { border-color: var(--border2); }
+  .map-card.selected:hover { border-color: var(--accent2); }
+
+  .map-check {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    width: 18px;
+    height: 18px;
+    border: 1px solid var(--border2);
+    border-radius: 2px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 11px;
+    transition: all .2s;
+  }
+
+  .map-card.selected .map-check {
+    background: var(--accent);
+    border-color: var(--accent);
+    color: #000;
+  }
+
+  .map-thumbnail {
+    width: 100%;
+    height: 70px;
+    background: var(--bg);
+    border-radius: 2px;
+    margin-bottom: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 28px;
+    border: 1px solid var(--border);
+    overflow: hidden;
+  }
+
+  .map-thumbnail img { width: 100%; height: 100%; object-fit: cover; }
+
+  .map-card-name {
+    font-family: 'Rajdhani', sans-serif;
+    font-size: 14px;
+    font-weight: 600;
+    letter-spacing: 1px;
+  }
+
+  .save-pool-row {
+    margin-top: 20px;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+  }
+
+  /* PB CONFIG */
+  .pb-config { display: flex; flex-direction: column; gap: 16px; }
+
+  .config-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 16px 20px;
+    background: var(--bg3);
+    border: 1px solid var(--border);
+    border-radius: 2px;
+  }
+
+  .config-label {
+    font-size: 13px;
+    color: var(--text);
+  }
+
+  .config-label small {
+    display: block;
+    font-size: 11px;
+    color: var(--muted);
+    margin-top: 3px;
+  }
+
+  select {
+    background: var(--bg2);
+    border: 1px solid var(--border2);
+    color: var(--text);
+    padding: 8px 14px;
+    font-family: 'Inter', sans-serif;
+    font-size: 13px;
+    border-radius: 2px;
+    outline: none;
+    cursor: pointer;
+  }
+
+  /* TOAST */
+  .toast {
+    position: fixed;
+    bottom: 32px;
+    right: 32px;
+    background: var(--bg2);
+    border: 1px solid var(--border2);
+    color: var(--text);
+    padding: 14px 20px;
+    font-size: 13px;
+    border-radius: 2px;
+    z-index: 999;
+    transform: translateY(80px);
+    opacity: 0;
+    transition: all .3s;
+    max-width: 300px;
+  }
+
+  .toast.show { transform: translateY(0); opacity: 1; }
+  .toast.success { border-left: 3px solid var(--success); }
+  .toast.error { border-left: 3px solid var(--danger); }
+
+  /* RESET SECTION */
+  .danger-zone {
+    border: 1px solid #e84a4a30;
+    border-radius: 2px;
+    padding: 24px;
+    margin-top: 40px;
+  }
+
+  .danger-title {
+    font-family: 'Rajdhani', sans-serif;
+    font-size: 14px;
+    font-weight: 700;
+    letter-spacing: 2px;
+    color: var(--danger);
+    text-transform: uppercase;
+    margin-bottom: 8px;
+  }
+
+  .tab-content { display: none; }
+  .tab-content.active { display: block; }
+
+  .stat-row {
+    display: flex;
+    gap: 16px;
+    margin-bottom: 32px;
+  }
+
+  .stat-box {
+    flex: 1;
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: 2px;
+    padding: 20px 24px;
+  }
+
+  .stat-val {
+    font-family: 'Rajdhani', sans-serif;
+    font-size: 36px;
+    font-weight: 700;
+    color: var(--accent);
+    line-height: 1;
+  }
+
+  .stat-label {
+    font-size: 10px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-top: 6px;
+  }
+</style>
+</head>
+<body>
+
+<!-- LOGIN -->
+<div id="login-screen">
+  <div class="login-box">
+    <div class="login-logo">EVA MAJOR</div>
+    <div class="login-sub">Admin Panel · Savigny</div>
+    <label>Mot de passe admin</label>
+    <input type="password" id="admin-pwd" placeholder="••••••••" onkeydown="if(event.key==='Enter')doLogin()">
+    <div class="error-msg" id="login-err">Mot de passe incorrect</div>
+    <button class="btn" onclick="doLogin()">Connexion</button>
+  </div>
+</div>
+
+<!-- APP -->
+<div id="app">
+  <header>
+    <div>
+      <div class="header-logo">EVA MAJOR CUP</div>
+      <div class="header-badge">Administration</div>
+    </div>
+    <button class="logout-btn" onclick="doLogout()">Déconnexion</button>
+  </header>
+
+  <div class="tabs">
+    <div class="tab active" onclick="switchTab('equipes', this)">Équipes</div>
+    <div class="tab" onclick="switchTab('mappool', this)">Map Pool</div>
+    <div class="tab" onclick="switchTab('pickban', this)">Config P&B</div>
+  </div>
+
+  <!-- TAB ÉQUIPES -->
+  <div class="content">
+    <div class="tab-content active" id="tab-equipes">
+      <div class="stat-row">
+        <div class="stat-box">
+          <div class="stat-val" id="stat-total">0</div>
+          <div class="stat-label">Équipes créées</div>
+        </div>
+        <div class="stat-box">
+          <div class="stat-val" id="stat-active">0</div>
+          <div class="stat-label">Capitaines connectés</div>
+        </div>
+        <div class="stat-box">
+          <div class="stat-val" id="stat-pending">0</div>
+          <div class="stat-label">En attente</div>
+        </div>
+      </div>
+
+      <div class="section-title">Gestion des équipes</div>
+      <div class="section-sub">Ajoute les équipes inscrites au tournoi. Chaque nom d'équipe devient l'identifiant de connexion du capitaine.</div>
+
+      <div class="card">
+        <div class="add-team-row">
+          <input type="text" id="new-team-name" placeholder="Nom de l'équipe..." onkeydown="if(event.key==='Enter')addTeam()">
+          <button class="btn sm" onclick="addTeam()">Ajouter</button>
+        </div>
+        <div class="teams-count">
+          <span id="teams-count-val">0</span> / 16 équipes
+        </div>
+        <div class="teams-list" id="teams-list"></div>
+      </div>
+
+      <div class="danger-zone">
+        <div class="danger-title">Zone dangereuse</div>
+        <div class="section-sub" style="margin-bottom:16px;">Réinitialise tous les mots de passe capitaines (les équipes restent). Utile en cas de problème le jour J.</div>
+        <button class="btn danger sm" onclick="resetAllPasswords()">Réinitialiser tous les mdp</button>
+      </div>
+    </div>
+
+    <!-- TAB MAP POOL -->
+    <div class="tab-content" id="tab-mappool">
+      <div class="section-title">Map Pool</div>
+      <div class="section-sub">Sélectionne les maps actives pour ce tournoi. Les maps non sélectionnées n'apparaîtront pas dans le pick & ban.</div>
+
+      <div class="card">
+        <div class="map-pool-header">
+          <div class="pool-count">Maps actives : <span id="pool-count">0</span> / <span id="pool-total">11</span></div>
+          <button class="btn sm ghost" onclick="saveMapPool()">Sauvegarder</button>
+        </div>
+        <div class="maps-grid" id="maps-grid"></div>
+        <div class="save-pool-row">
+          <button class="btn" onclick="saveMapPool()">Sauvegarder le map pool</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- TAB PICK & BAN CONFIG -->
+    <div class="tab-content" id="tab-pickban">
+      <div class="section-title">Configuration Pick & Ban</div>
+      <div class="section-sub">Paramètre le format du pick & ban pour ce tournoi. Ces réglages s'appliquent à tous les matchs.</div>
+
+      <div class="card pb-config">
+        <div class="config-row">
+          <div class="config-label">
+            Format de match
+            <small>Nombre de maps jouées par match</small>
+          </div>
+          <select id="cfg-format" onchange="updatePBPreview()">
+            <option value="bo3">BO3 — Best of 3</option>
+            <option value="bo5">BO5 — Best of 5</option>
+          </select>
+        </div>
+
+        <div class="config-row">
+          <div class="config-label">
+            Timer par action
+            <small>Durée max pour chaque ban/pick</small>
+          </div>
+          <select id="cfg-timer">
+            <option value="30">30 secondes</option>
+            <option value="45" selected>45 secondes</option>
+            <option value="60">60 secondes</option>
+            <option value="0">Sans timer</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="section-title" style="font-size:16px;margin-bottom:16px;">Séquence BO3</div>
+        <div id="pb-preview-bo3" style="display:flex;flex-direction:column;gap:8px;"></div>
+      </div>
+
+      <div style="margin-top:20px;">
+        <button class="btn" onclick="savePBConfig()">Sauvegarder la configuration</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const firebaseConfig = {
+  apiKey: "AIzaSyAJ5VS2HQTguUaOS6RmFocVz3FY0kC7M74",
+  authDomain: "savigny-major-cup.firebaseapp.com",
+  databaseURL: "https://savigny-major-cup-default-rtdb.europe-west1.firebasedatabase.app",
+  projectId: "savigny-major-cup",
+  storageBucket: "savigny-major-cup.firebasestorage.app",
+  messagingSenderId: "739304547260",
+  appId: "1:739304547260:web:10b130b42d3f859b9ac1b9"
+};
+
+firebase.initializeApp(firebaseConfig);
+const db = firebase.database();
+
+const ADMIN_PASSWORD = "eva2025admin";
+
+const ALL_MAPS = [
+  "Atlantis","Artefact","Ceres","Engine","Helios Station",
+  "Horizon","Lunar Outpost","Outlaw","Polaris","Silva","The Cliff"
+];
+
+const BO3_SEQUENCE = [
+  { action: "Choix", desc: "Choisit : maps ou side", team: "A (tirage)" },
+  { action: "Side",  desc: "Choisit Jaune ou Bleu", team: "B" },
+  { action: "Ban",   desc: "Ban map 1", team: "A" },
+  { action: "Ban",   desc: "Ban map 2", team: "B" },
+  { action: "Pick",  desc: "Pick map 1 (map 1 du BO)", team: "A" },
+  { action: "Pick",  desc: "Pick map 2 (map 2 du BO)", team: "B" },
+  { action: "Ban",   desc: "Ban map 3", team: "A" },
+  { action: "Ban",   desc: "Ban map 4", team: "B" },
+  { action: "Décider", desc: "Map restante = map 3", team: "Auto" },
+];
+
+let selectedMaps = new Set();
+let teams = {};
+
+function doLogin() {
+  const pwd = document.getElementById('admin-pwd').value;
+  if (pwd === ADMIN_PASSWORD) {
+    document.getElementById('login-screen').style.display = 'none';
+    document.getElementById('app').style.display = 'block';
+    initApp();
+  } else {
+    document.getElementById('login-err').style.display = 'block';
+  }
+}
+
+function doLogout() {
+  document.getElementById('login-screen').style.display = 'flex';
+  document.getElementById('app').style.display = 'none';
+  document.getElementById('admin-pwd').value = '';
+}
+
+function initApp() {
+  loadTeams();
+  loadMapPool();
+  loadPBConfig();
+  renderMapsGrid();
+  renderPBPreview();
+}
+
+function switchTab(name, el) {
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+  el.classList.add('active');
+  document.getElementById('tab-' + name).classList.add('active');
+}
+
+/* ── ÉQUIPES ── */
+function loadTeams() {
+  db.ref('teams').on('value', snap => {
+    teams = snap.val() || {};
+    renderTeams();
+  });
+}
+
+function renderTeams() {
+  const list = document.getElementById('teams-list');
+  const keys = Object.keys(teams);
+  document.getElementById('teams-count-val').textContent = keys.length;
+  document.getElementById('stat-total').textContent = keys.length;
+  const active = keys.filter(k => teams[k].passwordSet).length;
+  document.getElementById('stat-active').textContent = active;
+  document.getElementById('stat-pending').textContent = keys.length - active;
+
+  if (keys.length === 0) {
+    list.innerHTML = '<div style="color:var(--muted);font-size:13px;padding:16px 0;">Aucune équipe. Ajoute la première ci-dessus.</div>';
+    return;
+  }
+
+  list.innerHTML = keys.map(k => {
+    const t = teams[k];
+    const status = t.passwordSet
+      ? '<span class="team-status active">Connecté</span>'
+      : '<span class="team-status pending">En attente</span>';
+    return `
+      <div class="team-item">
+        <div class="team-name">${k}</div>
+        <div class="team-actions">
+          ${status}
+          <button class="del-btn" onclick="deleteTeam('${k}')" title="Supprimer">✕</button>
+        </div>
+      </div>`;
+  }).join('');
+}
+
+function addTeam() {
+  const input = document.getElementById('new-team-name');
+  const name = input.value.trim();
+  if (!name) return;
+  if (teams[name]) { showToast('Cette équipe existe déjà', 'error'); return; }
+  if (Object.keys(teams).length >= 16) { showToast('Maximum 16 équipes atteint', 'error'); return; }
+
+  db.ref('teams/' + name).set({
+    name: name,
+    passwordSet: false,
+    passwordHash: null,
+    createdAt: Date.now()
+  }).then(() => {
+    input.value = '';
+    showToast(name + ' ajoutée', 'success');
+  });
+}
+
+function deleteTeam(name) {
+  if (!confirm('Supprimer ' + name + ' ?')) return;
+  db.ref('teams/' + name).remove().then(() => showToast(name + ' supprimée', 'success'));
+}
+
+function resetAllPasswords() {
+  if (!confirm('Réinitialiser TOUS les mots de passe capitaines ?')) return;
+  const updates = {};
+  Object.keys(teams).forEach(k => {
+    updates['teams/' + k + '/passwordSet'] = false;
+    updates['teams/' + k + '/passwordHash'] = null;
+  });
+  db.ref().update(updates).then(() => showToast('Mots de passe réinitialisés', 'success'));
+}
+
+/* ── MAP POOL ── */
+function renderMapsGrid() {
+  const grid = document.getElementById('maps-grid');
+  grid.innerHTML = ALL_MAPS.map(m => `
+    <div class="map-card ${selectedMaps.has(m) ? 'selected' : ''}" onclick="toggleMap('${m}', this)">
+      <div class="map-thumbnail">🗺</div>
+      <div class="map-card-name">${m}</div>
+      <div class="map-check">${selectedMaps.has(m) ? '✓' : ''}</div>
+    </div>
+  `).join('');
+  updatePoolCount();
+}
+
+function toggleMap(name, el) {
+  if (selectedMaps.has(name)) {
+    selectedMaps.delete(name);
+    el.classList.remove('selected');
+    el.querySelector('.map-check').textContent = '';
+  } else {
+    selectedMaps.add(name);
+    el.classList.add('selected');
+    el.querySelector('.map-check').textContent = '✓';
+  }
+  updatePoolCount();
+}
+
+function updatePoolCount() {
+  document.getElementById('pool-count').textContent = selectedMaps.size;
+}
+
+function loadMapPool() {
+  db.ref('config/mapPool').once('value', snap => {
+    const pool = snap.val();
+    if (pool) {
+      selectedMaps = new Set(pool);
+      renderMapsGrid();
+    }
+  });
+}
+
+function saveMapPool() {
+  if (selectedMaps.size < 1) { showToast('Sélectionne au moins une map', 'error'); return; }
+  db.ref('config/mapPool').set([...selectedMaps]).then(() => {
+    showToast('Map pool sauvegardé (' + selectedMaps.size + ' maps)', 'success');
+  });
+}
+
+/* ── PICK & BAN CONFIG ── */
+function renderPBPreview() {
+  const colors = { 'Ban':'#e84a4a20', 'Pick':'#4ae88820', 'Choix':'#e8c04a20', 'Side':'#4a90e820', 'Décider':'#7070a020' };
+  const tcol =  { 'Ban':'var(--danger)', 'Pick':'var(--success)', 'Choix':'var(--accent)', 'Side':'var(--blue)', 'Décider':'var(--muted)' };
+
+  document.getElementById('pb-preview-bo3').innerHTML = BO3_SEQUENCE.map((s, i) => `
+    <div style="display:flex;align-items:center;gap:12px;padding:10px 16px;background:${colors[s.action]};border-radius:2px;border-left:3px solid ${tcol[s.action]}">
+      <span style="color:var(--muted);font-size:11px;width:20px;">${i+1}</span>
+      <span style="font-family:'Rajdhani',sans-serif;font-weight:700;font-size:14px;color:${tcol[s.action]};width:70px;">${s.action}</span>
+      <span style="font-size:12px;color:var(--text);flex:1;">${s.desc}</span>
+      <span style="font-size:11px;color:var(--muted);">Équipe ${s.team}</span>
+    </div>
+  `).join('');
+}
+
+function loadPBConfig() {
+  db.ref('config/pickban').once('value', snap => {
+    const cfg = snap.val();
+    if (cfg) {
+      if (cfg.format) document.getElementById('cfg-format').value = cfg.format;
+      if (cfg.timer) document.getElementById('cfg-timer').value = cfg.timer;
+    }
+  });
+}
+
+function savePBConfig() {
+  const cfg = {
+    format: document.getElementById('cfg-format').value,
+    timer: parseInt(document.getElementById('cfg-timer').value),
+    sequence: BO3_SEQUENCE,
+    updatedAt: Date.now()
+  };
+  db.ref('config/pickban').set(cfg).then(() => {
+    showToast('Configuration P&B sauvegardée', 'success');
+  });
+}
+
+/* ── TOAST ── */
+function showToast(msg, type = 'success') {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.className = 'toast ' + type + ' show';
+  setTimeout(() => t.classList.remove('show'), 3000);
+}
+
+/* ── ENTER KEY ── */
+document.getElementById('admin-pwd').addEventListener('keydown', e => {
+  if (e.key === 'Enter') doLogin();
+});
+</script>
+</body>
+</html>
